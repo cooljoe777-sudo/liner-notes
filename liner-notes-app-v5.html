@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LINER NOTES!!</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #000; color: #f5f5f5;
+    font-family: "BIZ UDGothic", "BIZ UDゴシック", "Noto Sans Mono CJK JP", Consolas, monospace;
+  }
+  .col { max-width: 430px; margin: 0 auto; padding: 16px 14px 40px; }
+  h1.logo {
+    color: #ff8c1a; text-align: center; font-size: 34px; letter-spacing: 2px;
+    margin: 18px 0 4px; text-shadow: 0 0 12px rgba(255,140,26,.75), 0 0 34px rgba(255,140,26,.4);
+  }
+  .kiss { text-align: center; color: #ffb35c; font-size: 12px; line-height: 1.7; margin: 6px 4px 14px; }
+  .intro { color: #ccc; font-size: 13px; line-height: 1.8; margin: 0 6px 18px; }
+  .card { border: 1px solid #444; border-radius: 12px; padding: 16px; margin: 14px 0; background: #111; }
+  .card h2 { color: #ff8c1a; font-size: 18px; margin: 0 0 10px; }
+  .status { font-size: 14px; line-height: 1.7; white-space: pre-wrap; word-break: break-all; }
+  .ok { color: #7be382; } .err { color: #ff7b7b; } .dim { color: #aaa; }
+  button {
+    font-family: inherit; font-size: 16px; border-radius: 10px; border: 1px solid #ff8c1a;
+    background: #ff8c1a; color: #000; padding: 12px 18px; cursor: pointer; margin: 4px 2px;
+  }
+  button.sub { background: #2b2b2b; color: #f5f5f5; border-color: #555; }
+  button:disabled { opacity: .45; cursor: default; }
+  .bigbtn {
+    display: block; width: 100%; text-align: center; font-size: 20px; padding: 16px;
+    margin: 10px 0; background: #1a1a1a; color: #ff8c1a; border: 1px solid #ff8c1a; border-radius: 12px;
+    text-shadow: 0 0 8px rgba(255,140,26,.6); cursor: pointer; font-family: inherit;
+  }
+  .rowbtn {
+    display: block; width: 100%; text-align: left; font-size: 17px; padding: 13px 14px;
+    margin: 8px 0; background: #161616; color: #ffb35c; border: 1px solid #4a4a4a; border-radius: 10px;
+    cursor: pointer; font-family: inherit;
+  }
+  .rowbtn small { color: #999; font-size: 12px; }
+  .backbtn { background: #2b2b2b; color: #f5f5f5; border: 1px solid #555; font-size: 14px; padding: 9px 14px; }
+  .crumb { color: #999; font-size: 13px; margin: 8px 2px; }
+  .bio { font-size: 14px; line-height: 1.9; white-space: pre-wrap; color: #eee; }
+  .clamp { max-height: 220px; overflow: hidden; position: relative; }
+  a.amlink {
+    display: block; text-align: center; background: #ff8c1a; color: #000; text-decoration: none;
+    border-radius: 10px; padding: 13px; font-size: 16px; margin: 14px 0;
+  }
+  #log { font-size: 11px; color: #8f8; white-space: pre-wrap; word-break: break-all; line-height: 1.6; }
+  input[type=file] { color: #f5f5f5; margin: 8px 0; }
+  .hidden { display: none; }
+  #gearBtn {
+    position: fixed; right: 14px; bottom: 14px; z-index: 50;
+    width: 52px; height: 52px; border-radius: 50%; font-size: 24px;
+    background: #2b2b2b; color: #ffb35c; border: 1px solid #ff8c1a; padding: 0;
+  }
+</style>
+</head>
+<body>
+<div class="col">
+
+  <button id="gearBtn" title="設定">⚙</button>
+  <!-- サインイン -->
+  <div class="card" id="authCard">
+    <h2>サインイン</h2>
+    <div class="status dim" id="authStatus">まだサインインしていません</div>
+    <button id="signinBtn">Googleでサインイン</button>
+    <button id="signoutBtn" class="sub" disabled>サインアウト</button>
+  </div>
+
+  <!-- データ読み込み／取り込み -->
+  <div class="card hidden" id="dataCard">
+    <h2>データ</h2>
+    <div class="status dim" id="dataStatus">サインインすると確認します</div>
+    <div id="importArea" class="hidden">
+      <p class="status">Driveにデータがまだありません。下のボタンで、5つのJSONファイル（categories.json、genres.json、artists.json、albums.json、songs.json）をまとめて選んでください。Driveの専用フォルダへ保存します。</p>
+      <input type="file" id="importFiles" accept=".json" multiple>
+      <br>
+      <button id="importBtn">選んだファイルをDriveに保存する</button>
+    </div>
+  </div>
+
+  <!-- アプリ画面 -->
+  <div id="appArea" class="hidden">
+
+    <!-- トップ -->
+    <div id="viewTop">
+      <h1 class="logo">LINER NOTES!!</h1>
+      <p class="kiss">All right TETSU! You Wanted the Best, You Got the Best!<br>The Hottest App in the World... LINER NOTES!!</p>
+      <p class="intro">あなたの音楽ライブラリです。カテゴリを選んでください。</p>
+      <div id="categoryList"></div>
+    </div>
+
+    <!-- ジャンル -->
+    <div id="viewGenres" class="hidden">
+      <button class="backbtn" data-back="top">← トップへ戻る</button>
+      <p class="crumb" id="genreCrumb"></p>
+      <div id="genreList"></div>
+    </div>
+
+    <!-- アーティスト一覧 -->
+    <div id="viewArtists" class="hidden">
+      <button class="backbtn" data-back="genres">← ジャンルへ戻る</button>
+      <p class="crumb" id="artistCrumb"></p>
+      <div id="artistList"></div>
+    </div>
+
+    <!-- アーティスト詳細 -->
+    <div id="viewArtist" class="hidden">
+      <button class="backbtn" data-back="artists">← 一覧へ戻る</button>
+      <h1 class="logo" style="font-size:26px;" id="artistName"></h1>
+      <p class="crumb" id="artistMeta"></p>
+      <a class="amlink" id="artistAm" href="#" target="_blank" rel="noopener">Apple Musicで探す</a>
+      <div class="bio clamp" id="artistBio"></div>
+      <button class="sub" id="bioToggle">… 続きを読む</button>
+      <div id="albumList" style="margin-top:18px;"></div>
+    </div>
+
+  </div>
+
+  <div class="card" id="logCard">
+    <h2>やったことの記録</h2>
+    <div id="log"></div>
+  </div>
+
+</div>
+
+<script src="https://accounts.google.com/gsi/client"></script>
+<script>
+const CLIENT_ID = '664730006638-2j4rccndibo7ld7k3heghuhc0453kdmf.apps.googleusercontent.com';
+const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+const DATA_FILES = ['categories.json', 'genres.json', 'artists.json', 'albums.json', 'songs.json'];
+
+let tokenClient = null;
+let accessToken = null;
+let signedInOnce = false;
+let tokenWaiter = null;
+let folderId = null;
+let DB = {};           // ファイル名 -> 配列
+let curCategory = null;
+let curGenre = null;
+
+const $ = id => document.getElementById(id);
+function log(msg) {
+  const t = new Date();
+  const hh = String(t.getHours()).padStart(2,'0'), mm = String(t.getMinutes()).padStart(2,'0'), ss = String(t.getSeconds()).padStart(2,'0');
+  $('log').textContent += '[' + hh + ':' + mm + ':' + ss + '] ' + msg + '\n';
+}
+function setStatus(el, text, cls) { el.textContent = text; el.className = 'status ' + (cls || ''); }
+function setPanels(hidden) {
+  for (const id of ['authCard', 'dataCard', 'logCard']) $(id).classList.toggle('hidden', hidden);
+}
+function panelsHidden() { return $('authCard').classList.contains('hidden'); }
+
+window.addEventListener('load', () => {
+  $('signinBtn').addEventListener('click', () => startAuth(false));
+  $('signoutBtn').addEventListener('click', signOut);
+  $('importBtn').addEventListener('click', importData);
+  $('gearBtn').addEventListener('click', () => setPanels(!panelsHidden()));
+  document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => showView(b.dataset.back)));
+  $('bioToggle').addEventListener('click', () => {
+    const bio = $('artistBio');
+    if (bio.classList.contains('clamp')) { bio.classList.remove('clamp'); $('bioToggle').textContent = '閉じる'; }
+    else { bio.classList.add('clamp'); $('bioToggle').textContent = '… 続きを読む'; }
+  });
+  initAuth();
+});
+
+const REDIRECT_URI = location.origin + location.pathname;
+function authUrl(silent) {
+  const p = new URLSearchParams({
+    client_id: CLIENT_ID,
+    redirect_uri: REDIRECT_URI,
+    response_type: 'token',
+    scope: SCOPES,
+    include_granted_scopes: 'true'
+  });
+  if (silent) p.set('prompt', 'none');
+  return 'https://accounts.google.com/o/oauth2/v2/auth?' + p.toString();
+}
+function startAuth(silent) {
+  if (silent) sessionStorage.setItem('ln_silent_tried', '1');
+  location.href = authUrl(silent);
+}
+function signOut() {
+  if (accessToken) {
+    fetch('https://oauth2.googleapis.com/revoke?token=' + encodeURIComponent(accessToken), { method: 'POST' }).catch(() => {});
+  }
+  accessToken = null; folderId = null; DB = {}; signedInOnce = false;
+  sessionStorage.removeItem('ln_token');
+  sessionStorage.removeItem('ln_silent_tried');
+  setStatus($('authStatus'), 'サインアウトしました', 'dim');
+  $('signoutBtn').disabled = true;
+  setPanels(false);
+  $('dataCard').classList.add('hidden');
+  $('appArea').classList.add('hidden');
+  log('サインアウトしました');
+}
+async function initAuth() {
+  // 戻りのURLにトークンが付いていたら受け取る
+  if (location.hash && location.hash.indexOf('access_token') >= 0) {
+    const h = new URLSearchParams(location.hash.slice(1));
+    const tok = h.get('access_token');
+    const exp = parseInt(h.get('expires_in') || '3600', 10);
+    if (tok) {
+      sessionStorage.setItem('ln_token', JSON.stringify({ tok: tok, until: Date.now() + (exp - 60) * 1000 }));
+      history.replaceState(null, '', location.pathname + location.search);
+      accessToken = tok;
+      onSignedIn();
+      return;
+    }
+  }
+  if (location.hash && location.hash.indexOf('error') >= 0) {
+    history.replaceState(null, '', location.pathname + location.search);
+    log('自動サインインは通りませんでした（ボタンからサインインできます）');
+    setStatus($('authStatus'), '「Googleでサインイン」を押してください', 'dim');
+    return;
+  }
+  // このタブで保持中のトークンがあれば使う
+  try {
+    const saved = JSON.parse(sessionStorage.getItem('ln_token') || 'null');
+    if (saved && saved.until > Date.now()) {
+      accessToken = saved.tok;
+      onSignedIn();
+      return;
+    }
+  } catch (e) {}
+  // まず画面なしの自動サインインを1回だけ試す
+  if (!sessionStorage.getItem('ln_silent_tried')) {
+    setStatus($('authStatus'), '自動サインインを試しています…', 'dim');
+    startAuth(true);
+    return;
+  }
+  setStatus($('authStatus'), '「Googleでサインイン」を押してください', 'dim');
+}
+async function onSignedIn() {
+  setStatus($('authStatus'), 'サインインできました', 'ok');
+  $('signoutBtn').disabled = false;
+  log('アクセストークンを取得しました');
+  if (!signedInOnce) { signedInOnce = true; await afterSignIn(); }
+}
+async function refreshToken() {
+  // 期限切れ時は、画面なしの再認証へ（戻ってきたら initAuth が拾う）
+  sessionStorage.removeItem('ln_silent_tried');
+  startAuth(true);
+  return new Promise(() => {}); // ページ遷移するので戻らない
+}
+
+async function api(url, options) {
+  options = options || {};
+  options.headers = Object.assign({}, options.headers || {}, { 'Authorization': 'Bearer ' + accessToken });
+  const r = await fetch(url, options);
+  if (r.status === 401 && !options._retried) {
+    options._retried = true;
+    log('入館証の期限が切れたため、取り直します');
+    sessionStorage.removeItem('ln_token');
+    await refreshToken();
+    return api(url, options);
+  }
+  if (!r.ok) throw new Error('HTTP ' + r.status + ' ' + (await r.text()).slice(0, 200));
+  return r;
+}
+async function apiJson(url, options) { const r = await api(url, options); return r.json(); }
+
+async function findFolder() {
+  const q = encodeURIComponent("name = 'LINER NOTES' and mimeType = 'application/vnd.google-apps.folder' and trashed = false");
+  const res = await apiJson('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name)');
+  if (res.files && res.files.length > 0) return res.files[0].id;
+  const created = await apiJson('https://www.googleapis.com/drive/v3/files?fields=id', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: 'LINER NOTES', mimeType: 'application/vnd.google-apps.folder' })
+  });
+  log('専用フォルダを新規作成しました');
+  return created.id;
+}
+async function findFile(name) {
+  const q = encodeURIComponent("name = '" + name + "' and '" + folderId + "' in parents and trashed = false");
+  const res = await apiJson('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name)');
+  return (res.files && res.files.length > 0) ? res.files[0].id : null;
+}
+async function downloadJson(name) {
+  const id = await findFile(name);
+  if (!id) return null;
+  const r = await api('https://www.googleapis.com/drive/v3/files/' + id + '?alt=media');
+  return r.json();
+}
+async function uploadJson(name, text) {
+  const existing = await findFile(name);
+  if (existing) {
+    await api('https://www.googleapis.com/upload/drive/v3/files/' + existing + '?uploadType=media', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: text
+    });
+    log(name + ' を上書き保存しました');
+  } else {
+    const meta = { name: name, parents: [folderId], mimeType: 'application/json' };
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify(meta)], { type: 'application/json' }));
+    form.append('file', new Blob([text], { type: 'application/json' }));
+    await api('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', { method: 'POST', body: form });
+    log(name + ' を新規保存しました');
+  }
+}
+
+async function afterSignIn() {
+  try {
+    folderId = await findFolder();
+    log('専用フォルダを確認しました: ' + folderId);
+    $('dataCard').classList.remove('hidden');
+    setStatus($('dataStatus'), 'Driveのデータを確認しています…', 'dim');
+    let missing = [];
+    for (const name of DATA_FILES) {
+      const data = await downloadJson(name);
+      if (data === null) missing.push(name); else DB[name] = data;
+    }
+    if (missing.length === 0) {
+      setStatus($('dataStatus'), 'データを読み込みました（アーティスト ' + DB['artists.json'].length + ' 件）', 'ok');
+      $('importArea').classList.add('hidden');
+      setPanels(true);
+      buildTop();
+      $('appArea').classList.remove('hidden');
+      showView('top');
+    } else {
+      setStatus($('dataStatus'), 'Driveに無いファイル: ' + missing.join('、') + '\n下から取り込んでください。', 'err');
+      $('importArea').classList.remove('hidden');
+      log('未配置のファイル: ' + missing.join(', '));
+    }
+  } catch (e) {
+    setStatus($('dataStatus'), 'エラー: ' + e.message, 'err');
+    log('エラー: ' + e.message);
+  }
+}
+
+async function importData() {
+  const files = $('importFiles').files;
+  if (!files || files.length === 0) { setStatus($('dataStatus'), 'ファイルが選ばれていません', 'err'); return; }
+  try {
+    $('importBtn').disabled = true;
+    const byName = {};
+    for (const f of files) byName[f.name] = f;
+    for (const name of DATA_FILES) {
+      if (!byName[name]) { setStatus($('dataStatus'), name + ' が選ばれていません。5つ全部を選んでください。', 'err'); $('importBtn').disabled = false; return; }
+    }
+    for (const name of DATA_FILES) {
+      const text = await byName[name].text();
+      JSON.parse(text); // 壊れたファイルでないか先に確認
+      await uploadJson(name, text);
+    }
+    setStatus($('dataStatus'), 'Driveへの保存が終わりました。読み込み直します…', 'ok');
+    await afterSignIn();
+  } catch (e) {
+    setStatus($('dataStatus'), '取り込みエラー: ' + e.message, 'err');
+    log('取り込みエラー: ' + e.message);
+  } finally {
+    $('importBtn').disabled = false;
+  }
+}
+
+function showView(v) {
+  for (const id of ['viewTop','viewGenres','viewArtists','viewArtist']) $(id).classList.add('hidden');
+  if (v === 'top') $('viewTop').classList.remove('hidden');
+  if (v === 'genres') $('viewGenres').classList.remove('hidden');
+  if (v === 'artists') $('viewArtists').classList.remove('hidden');
+  if (v === 'artist') $('viewArtist').classList.remove('hidden');
+  window.scrollTo(0, 0);
+}
+
+function buildTop() {
+  const wrap = $('categoryList');
+  wrap.innerHTML = '';
+  for (const c of DB['categories.json']) {
+    const b = document.createElement('button');
+    b.className = 'bigbtn'; b.textContent = c.name;
+    b.addEventListener('click', () => { curCategory = c.name; buildGenres(); showView('genres'); });
+    wrap.appendChild(b);
+  }
+}
+function buildGenres() {
+  $('genreCrumb').textContent = 'カテゴリ: ' + curCategory;
+  const wrap = $('genreList');
+  wrap.innerHTML = '';
+  const list = DB['genres.json'].filter(g => g.category === curCategory);
+  for (const g of list) {
+    const count = DB['artists.json'].filter(a => a.category === curCategory && a.genre === g.name).length;
+    const b = document.createElement('button');
+    b.className = 'rowbtn';
+    b.innerHTML = '';
+    b.textContent = g.name + ' ';
+    const s = document.createElement('small'); s.textContent = '（' + count + '件）'; b.appendChild(s);
+    b.addEventListener('click', () => { curGenre = g.name; buildArtists(); showView('artists'); });
+    wrap.appendChild(b);
+  }
+  if (list.length === 0) wrap.innerHTML = '<p class="status dim">ジャンルがありません</p>';
+}
+function buildArtists() {
+  $('artistCrumb').textContent = curCategory + ' / ' + curGenre;
+  const wrap = $('artistList');
+  wrap.innerHTML = '';
+  const list = DB['artists.json'].filter(a => a.category === curCategory && a.genre === curGenre);
+  for (const a of list) {
+    const b = document.createElement('button');
+    b.className = 'rowbtn'; b.textContent = a.name;
+    b.addEventListener('click', () => buildArtist(a));
+    wrap.appendChild(b);
+  }
+  if (list.length === 0) wrap.innerHTML = '<p class="status dim">アーティストがありません</p>';
+}
+function buildArtist(a) {
+  $('artistName').textContent = a.name;
+  $('artistMeta').textContent = a.category + ' / ' + a.genre;
+  const am = $('artistAm');
+  if (a.am_url) { am.href = a.am_url; am.style.display = 'block'; } else { am.style.display = 'none'; }
+  const bio = $('artistBio');
+  bio.textContent = a.bio || '（バイオグラフィは未登録です）';
+  bio.classList.add('clamp');
+  $('bioToggle').textContent = '… 続きを読む';
+  const albums = DB['albums.json'].filter(al => al.artist_id === a.id)
+    .sort((x, y) => String(x.year || '').localeCompare(String(y.year || '')));
+  const wrap = $('albumList');
+  wrap.innerHTML = '<h2 style="color:#ff8c1a;font-size:18px;">アルバム</h2>';
+  if (albums.length === 0) wrap.innerHTML += '<p class="status dim">登録アルバムはありません</p>';
+  for (const al of albums) {
+    const d = document.createElement('div');
+    d.className = 'rowbtn'; d.style.cursor = 'default';
+    d.textContent = (al.year ? al.year + '　' : '') + al.title;
+    wrap.appendChild(d);
+  }
+  showView('artist');
+}
+</script>
+</body>
+</html>
