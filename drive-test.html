@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LINER NOTES - Drive接続テスト</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 16px;
+    background: #0a0a0a; color: #f5f5f5;
+    font-family: "BIZ UDGothic", "BIZ UDゴシック", "Noto Sans Mono CJK JP", Consolas, monospace;
+    line-height: 1.7;
+  }
+  h1 { color: #ff8c1a; font-size: 20px; margin: 8px 0 4px; }
+  .sub { color: #bbb; font-size: 13px; margin-bottom: 16px; }
+  .box {
+    border: 1px solid #444; border-radius: 8px;
+    padding: 14px; margin-bottom: 14px; background: #141414;
+  }
+  .box h2 { font-size: 15px; color: #ff8c1a; margin: 0 0 8px; }
+  .status { font-size: 15px; min-height: 1.6em; }
+  .ok { color: #7dd87d; }
+  .ng { color: #ff7d7d; }
+  button {
+    font-family: inherit; font-size: 15px;
+    background: #ff8c1a; color: #111; border: none; border-radius: 6px;
+    padding: 10px 18px; margin: 4px 6px 4px 0; cursor: pointer;
+  }
+  button:disabled { background: #555; color: #999; cursor: default; }
+  button.sub2 { background: #333; color: #f5f5f5; border: 1px solid #666; }
+  textarea {
+    width: 100%; min-height: 90px; font-family: inherit; font-size: 14px;
+    background: #0a0a0a; color: #f5f5f5; border: 1px solid #444; border-radius: 6px;
+    padding: 8px;
+  }
+  #log {
+    font-size: 12.5px; color: #9fd89f; white-space: pre-wrap; word-break: break-all;
+    max-height: 220px; overflow-y: auto;
+  }
+</style>
+</head>
+<body>
+<h1>LINER NOTES - Drive接続テスト</h1>
+<div class="sub">試作版です。サインイン → 専用フォルダ作成 → テスト保存・読み直し、だけを確認します。</div>
+
+<div class="box">
+  <h2>1. サインイン</h2>
+  <div class="status" id="authStatus">まだサインインしていません</div>
+  <button id="signInBtn">Googleでサインイン</button>
+  <button id="signOutBtn" class="sub2" disabled>サインアウト</button>
+</div>
+
+<div class="box">
+  <h2>2. 専用フォルダ</h2>
+  <div class="status" id="folderStatus">サインインすると自動で確認します</div>
+</div>
+
+<div class="box">
+  <h2>3. テストの保存と読み直し</h2>
+  <textarea id="testText"></textarea>
+  <div style="margin-top:8px;">
+    <button id="saveBtn" disabled>Driveに保存する</button>
+    <button id="loadBtn" class="sub2" disabled>Driveから読み直す</button>
+  </div>
+  <div class="status" id="fileStatus"></div>
+</div>
+
+<div class="box">
+  <h2>やったことの記録</h2>
+  <div id="log"></div>
+</div>
+
+<script src="https://accounts.google.com/gsi/client"></script>
+<script>
+"use strict";
+const CLIENT_ID = "664730006638-2j4rccndibo7ld7k3heghuhc0453kdmf.apps.googleusercontent.com";
+const SCOPE = "https://www.googleapis.com/auth/drive.file";
+const FOLDER_NAME = "LINER NOTES";
+const FILE_NAME = "test.json";
+
+let accessToken = null;
+let tokenClient = null;
+let folderId = null;
+let fileId = null;
+
+const $ = (id) => document.getElementById(id);
+function log(msg) {
+  const t = new Date().toLocaleTimeString("ja-JP");
+  $("log").textContent += "[" + t + "] " + msg + "\n";
+  $("log").scrollTop = $("log").scrollHeight;
+}
+function setStatus(id, text, cls) {
+  const el = $(id);
+  el.textContent = text;
+  el.className = "status" + (cls ? " " + cls : "");
+}
+
+async function driveFetch(path, options) {
+  const res = await fetch("https://www.googleapis.com/drive/v3/" + path, Object.assign({}, options, {
+    headers: Object.assign({}, (options && options.headers) || {}, {
+      "Authorization": "Bearer " + accessToken
+    })
+  }));
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error("Drive API エラー " + res.status + ": " + body.slice(0, 200));
+  }
+  return res;
+}
+
+async function findOrCreateFolder() {
+  setStatus("folderStatus", "専用フォルダを確認中…");
+  const q = encodeURIComponent("name = '" + FOLDER_NAME + "' and mimeType = 'application/vnd.google-apps.folder' and trashed = false");
+  const res = await driveFetch("files?q=" + q + "&fields=files(id,name)");
+  const data = await res.json();
+  if (data.files && data.files.length > 0) {
+    folderId = data.files[0].id;
+    setStatus("folderStatus", "専用フォルダ「" + FOLDER_NAME + "」が見つかりました", "ok");
+    log("フォルダ既存: " + folderId);
+  } else {
+    const cres = await driveFetch("files", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: FOLDER_NAME, mimeType: "application/vnd.google-apps.folder" })
+    });
+    const cdata = await cres.json();
+    folderId = cdata.id;
+    setStatus("folderStatus", "専用フォルダ「" + FOLDER_NAME + "」を新しく作りました", "ok");
+    log("フォルダ新規作成: " + folderId);
+  }
+  $("saveBtn").disabled = false;
+  $("loadBtn").disabled = false;
+  await findTestFile();
+}
+
+async function findTestFile() {
+  const q = encodeURIComponent("name = '" + FILE_NAME + "' and '" + folderId + "' in parents and trashed = false");
+  const res = await driveFetch("files?q=" + q + "&fields=files(id,name,modifiedTime)");
+  const data = await res.json();
+  if (data.files && data.files.length > 0) {
+    fileId = data.files[0].id;
+    log("テストファイル既存: " + fileId);
+  } else {
+    fileId = null;
+    log("テストファイルはまだありません");
+  }
+}
+
+async function saveTest() {
+  const content = $("testText").value;
+  setStatus("fileStatus", "保存中…");
+  try {
+    if (fileId) {
+      await fetch("https://www.googleapis.com/upload/drive/v3/files/" + fileId + "?uploadType=media", {
+        method: "PATCH",
+        headers: { "Authorization": "Bearer " + accessToken, "Content-Type": "application/json" },
+        body: content
+      }).then((r) => { if (!r.ok) throw new Error("保存エラー " + r.status); });
+      log("テストファイルを上書き保存しました");
+    } else {
+      const boundary = "liner_notes_boundary";
+      const metadata = JSON.stringify({ name: FILE_NAME, parents: [folderId] });
+      const body = "--" + boundary + "\r\n" +
+        "Content-Type: application/json; charset=UTF-8\r\n\r\n" + metadata + "\r\n" +
+        "--" + boundary + "\r\n" +
+        "Content-Type: application/json\r\n\r\n" + content + "\r\n" +
+        "--" + boundary + "--";
+      const res = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id", {
+        method: "POST",
+        headers: { "Authorization": "Bearer " + accessToken, "Content-Type": "multipart/related; boundary=" + boundary },
+        body: body
+      });
+      if (!res.ok) throw new Error("保存エラー " + res.status + ": " + (await res.text()).slice(0, 200));
+      const data = await res.json();
+      fileId = data.id;
+      log("テストファイルを新規保存しました: " + fileId);
+    }
+    setStatus("fileStatus", "保存できました（" + new Date().toLocaleTimeString("ja-JP") + "）", "ok");
+  } catch (e) {
+    setStatus("fileStatus", "保存に失敗しました: " + e.message, "ng");
+    log("保存失敗: " + e.message);
+  }
+}
+
+async function loadTest() {
+  setStatus("fileStatus", "読み込み中…");
+  try {
+    await findTestFile();
+    if (!fileId) {
+      setStatus("fileStatus", "Driveにテストファイルがありません。先に保存してください", "ng");
+      return;
+    }
+    const res = await driveFetch("files/" + fileId + "?alt=media");
+    const text = await res.text();
+    $("testText").value = text;
+    setStatus("fileStatus", "Driveから読み直しました", "ok");
+    log("読み直し成功: " + text.slice(0, 80));
+  } catch (e) {
+    setStatus("fileStatus", "読み込みに失敗しました: " + e.message, "ng");
+    log("読み込み失敗: " + e.message);
+  }
+}
+
+function onSignedIn(resp) {
+  if (resp.error) {
+    setStatus("authStatus", "サインインに失敗しました: " + resp.error, "ng");
+    log("サインイン失敗: " + resp.error);
+    return;
+  }
+  accessToken = resp.access_token;
+  setStatus("authStatus", "サインインできました", "ok");
+  log("アクセストークンを取得しました");
+  $("signOutBtn").disabled = false;
+  findOrCreateFolder().catch((e) => {
+    setStatus("folderStatus", "フォルダ確認に失敗しました: " + e.message, "ng");
+    log("フォルダ確認失敗: " + e.message);
+  });
+}
+
+window.addEventListener("load", () => {
+  $("testText").value = JSON.stringify({
+    app: "LINER NOTES",
+    purpose: "Drive接続テスト",
+    savedAt: new Date().toISOString()
+  }, null, 2);
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: SCOPE,
+    callback: onSignedIn
+  });
+  $("signInBtn").addEventListener("click", () => {
+    log("サインインを開始します");
+    tokenClient.requestAccessToken({ prompt: "" });
+  });
+  $("signOutBtn").addEventListener("click", () => {
+    if (accessToken) google.accounts.oauth2.revoke(accessToken);
+    accessToken = null; folderId = null; fileId = null;
+    setStatus("authStatus", "サインアウトしました");
+    setStatus("folderStatus", "サインインすると自動で確認します");
+    setStatus("fileStatus", "");
+    $("saveBtn").disabled = true;
+    $("loadBtn").disabled = true;
+    $("signOutBtn").disabled = true;
+    log("サインアウトしました");
+  });
+  $("saveBtn").addEventListener("click", saveTest);
+  $("loadBtn").addEventListener("click", loadTest);
+  log("ページの準備ができました");
+});
+</script>
+</body>
+</html>
