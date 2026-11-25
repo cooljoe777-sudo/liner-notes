@@ -157,6 +157,7 @@
 
 <script src="https://accounts.google.com/gsi/client"></script>
 <script>
+const BUILD = '2026-11-25 14:20版';
 const CLIENT_ID = '664730006638-2j4rccndibo7ld7k3heghuhc0453kdmf.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 const DATA_FILES = ['categories.json', 'genres.json', 'artists.json', 'albums.json', 'songs.json'];
@@ -187,6 +188,7 @@ function setPanels(hidden) {
 function panelsHidden() { return $('authCard').classList.contains('hidden'); }
 
 window.addEventListener('load', () => {
+  log('アプリの版: ' + BUILD);
   $('signinBtn').addEventListener('click', () => startAuth(false));
   $('signoutBtn').addEventListener('click', signOut);
   $('importBtn').addEventListener('click', importData);
@@ -363,6 +365,9 @@ async function loadImageIndex() {
   log('フォルダ内のファイル総数: ' + allCount + ' / 画像: ' + names.length + ' 件');
   log('top_image: ' + (imgName('top_image') ? 'あり（' + imgName('top_image') + '）' : 'なし'));
   log('ロゴ以外の画像（先頭40件）: ' + names.filter(n => n.indexOf('logo_') !== 0).slice(0, 40).join(', '));
+  const artistIds = new Set((DB['artists.json'] || []).map(a => a.id));
+  const photoHits = names.filter(n => n.indexOf('logo_') !== 0 && artistIds.has(n.replace(/\.(jpg|jpeg|png|webp)$/i, '')));
+  log('写真（アーティストと一致）: ' + photoHits.length + ' 件');
 }
 function imgName(base) {
   for (const ext of ['.jpg', '.jpeg', '.png', '.webp']) {
