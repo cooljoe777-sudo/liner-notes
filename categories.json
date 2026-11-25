@@ -1,0 +1,17 @@
+[
+    {
+        "id": "820869d8-6003-4cbb-ba77-26a1c5e422d1",
+        "name": "洋楽",
+        "is_classical": false
+    },
+    {
+        "id": "7825ce8e-2141-4908-ac0e-a4dc339602f6",
+        "name": "邦楽",
+        "is_classical": false
+    },
+    {
+        "id": "54827f94-de90-4738-95c3-93d5510f5e30",
+        "name": "Classic",
+        "is_classical": true
+    }
+]
