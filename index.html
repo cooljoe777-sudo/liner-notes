@@ -352,14 +352,28 @@ async function uploadJson(name, text) {
 
 async function loadImageIndex() {
   IMG = {};
+  let allCount = 0;
   const q = encodeURIComponent("'" + folderId + "' in parents and trashed = false");
   const res = await apiJson('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name)&pageSize=1000');
   for (const f of (res.files || [])) {
-    if (/\.jpg$/i.test(f.name) || /\.png$/i.test(f.name)) IMG[f.name] = f.id;
+    allCount++;
+    if (/\.(jpg|jpeg|png|webp|gif)$/i.test(f.name)) IMG[f.name] = f.id;
   }
-  log('画像ファイル: ' + Object.keys(IMG).length + ' 件');
-  log('top_image.jpg: ' + (IMG['top_image.jpg'] ? 'あり' : 'なし'));
-  log('画像の名前（先頭40件）: ' + Object.keys(IMG).slice(0, 40).join(', '));
+  const names = Object.keys(IMG);
+  log('フォルダ内のファイル総数: ' + allCount + ' / 画像: ' + names.length + ' 件');
+  log('top_image: ' + (imgName('top_image') ? 'あり（' + imgName('top_image') + '）' : 'なし'));
+  log('ロゴ以外の画像（先頭40件）: ' + names.filter(n => n.indexOf('logo_') !== 0).slice(0, 40).join(', '));
+}
+function imgName(base) {
+  for (const ext of ['.jpg', '.jpeg', '.png', '.webp']) {
+    if (IMG[base + ext]) return base + ext;
+  }
+  return null;
+}
+async function setImgByBase(el, base) {
+  const name = imgName(base);
+  if (name) { await setImg(el, name); }
+  else { el.classList.add('hidden'); el.removeAttribute('src'); }
 }
 async function imgUrl(name) {
   if (imgUrlCache[name]) return imgUrlCache[name];
@@ -479,7 +493,7 @@ function showView(v) {
 }
 
 function buildTop() {
-  setImg($('topImage'), 'top_image.jpg');
+  setImgByBase($('topImage'), 'top_image');
   const wrap = $('categoryList');
   wrap.innerHTML = '';
   for (const c of DB['categories.json']) {
@@ -516,8 +530,8 @@ function buildArtists() {
     b.className = 'rowbtn'; b.textContent = a.name;
     b.addEventListener('click', () => buildArtist(a));
     wrap.appendChild(b);
-    const logoName = 'logo_' + a.id + '.jpg';
-    if (IMG[logoName]) {
+    const logoName = imgName('logo_' + a.id);
+    if (logoName) {
       imgUrl(logoName).then(url => {
         if (!url) return;
         b.textContent = '';
@@ -535,7 +549,7 @@ function buildArtist(a) {
   $('artistMeta').textContent = a.category + ' / ' + a.genre;
   const am = $('artistAm');
   if (a.am_url) { am.href = a.am_url; am.style.display = 'block'; } else { am.style.display = 'none'; }
-  setImg($('artistPhoto'), a.id + '.jpg');
+  setImgByBase($('artistPhoto'), a.id);
   const bio = $('artistBio');
   bio.textContent = a.bio || '（バイオグラフィは未登録です）';
   bio.classList.add('clamp');
@@ -559,7 +573,7 @@ function buildAlbum(al) {
   curAlbum = al;
   $('albumTitle').textContent = al.title;
   $('albumMeta').textContent = (curArtist ? curArtist.name : '') + (al.year ? ' / ' + al.year : '') + (al.genre ? ' / ' + al.genre : '');
-  setImg($('albumImage'), al.id + '.jpg');
+  setImgByBase($('albumImage'), al.id);
   const note = $('albumNote');
   note.textContent = al.note || '（アルバム詳細は未登録です）';
   note.classList.add('clamp');
