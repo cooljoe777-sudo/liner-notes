@@ -199,14 +199,13 @@ window.addEventListener('load', () => {
     showView(to);
   }));
   $('bioToggle').addEventListener('click', () => {
-    setImg($('artistPhoto'), a.id + '.jpg');
-  const bio = $('artistBio');
+    log('「続きを読む」ボタンが押されました');
+    const bio = $('artistBio');
     if (bio.classList.contains('clamp')) { bio.classList.remove('clamp'); $('bioToggle').textContent = '閉じる'; }
     else { bio.classList.add('clamp'); $('bioToggle').textContent = '… 続きを読む'; }
   });
   $('noteToggle').addEventListener('click', () => {
-    setImg($('albumImage'), al.id + '.jpg');
-  const note = $('albumNote');
+    const note = $('albumNote');
     if (note.classList.contains('clamp')) { note.classList.remove('clamp'); $('noteToggle').textContent = '閉じる'; }
     else { note.classList.add('clamp'); $('noteToggle').textContent = '… 続きを読む'; }
   });
@@ -359,6 +358,8 @@ async function loadImageIndex() {
     if (/\.jpg$/i.test(f.name) || /\.png$/i.test(f.name)) IMG[f.name] = f.id;
   }
   log('画像ファイル: ' + Object.keys(IMG).length + ' 件');
+  log('top_image.jpg: ' + (IMG['top_image.jpg'] ? 'あり' : 'なし'));
+  log('画像の名前（先頭40件）: ' + Object.keys(IMG).slice(0, 40).join(', '));
 }
 async function imgUrl(name) {
   if (imgUrlCache[name]) return imgUrlCache[name];
