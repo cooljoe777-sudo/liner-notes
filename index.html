@@ -116,6 +116,24 @@
       <div id="albumList" style="margin-top:18px;"></div>
     </div>
 
+    <!-- アルバム詳細 -->
+    <div id="viewAlbum" class="hidden">
+      <button class="backbtn" data-back="artist">← アーティストへ戻る</button>
+      <h1 class="logo" style="font-size:24px;" id="albumTitle"></h1>
+      <p class="crumb" id="albumMeta"></p>
+      <div class="bio clamp" id="albumNote"></div>
+      <button class="sub" id="noteToggle">… 続きを読む</button>
+      <div id="songList" style="margin-top:18px;"></div>
+    </div>
+
+    <!-- 曲詳細 -->
+    <div id="viewSong" class="hidden">
+      <button class="backbtn" data-back="album">← アルバムへ戻る</button>
+      <h1 class="logo" style="font-size:24px;" id="songTitle"></h1>
+      <p class="crumb" id="songMeta"></p>
+      <div id="songSections"></div>
+    </div>
+
   </div>
 
   <div class="card" id="logCard">
@@ -139,6 +157,8 @@ let folderId = null;
 let DB = {};           // ファイル名 -> 配列
 let curCategory = null;
 let curGenre = null;
+let curArtist = null;
+let curAlbum = null;
 
 const $ = id => document.getElementById(id);
 function log(msg) {
@@ -157,11 +177,21 @@ window.addEventListener('load', () => {
   $('signoutBtn').addEventListener('click', signOut);
   $('importBtn').addEventListener('click', importData);
   $('gearBtn').addEventListener('click', () => setPanels(!panelsHidden()));
-  document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => showView(b.dataset.back)));
+  document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => {
+    const to = b.dataset.back;
+    if (to === 'artist' && curArtist) { buildArtist(curArtist); return; }
+    if (to === 'album' && curAlbum) { buildAlbum(curAlbum); return; }
+    showView(to);
+  }));
   $('bioToggle').addEventListener('click', () => {
     const bio = $('artistBio');
     if (bio.classList.contains('clamp')) { bio.classList.remove('clamp'); $('bioToggle').textContent = '閉じる'; }
     else { bio.classList.add('clamp'); $('bioToggle').textContent = '… 続きを読む'; }
+  });
+  $('noteToggle').addEventListener('click', () => {
+    const note = $('albumNote');
+    if (note.classList.contains('clamp')) { note.classList.remove('clamp'); $('noteToggle').textContent = '閉じる'; }
+    else { note.classList.add('clamp'); $('noteToggle').textContent = '… 続きを読む'; }
   });
   initAuth();
 });
@@ -359,11 +389,13 @@ async function importData() {
 }
 
 function showView(v) {
-  for (const id of ['viewTop','viewGenres','viewArtists','viewArtist']) $(id).classList.add('hidden');
+  for (const id of ['viewTop','viewGenres','viewArtists','viewArtist','viewAlbum','viewSong']) $(id).classList.add('hidden');
   if (v === 'top') $('viewTop').classList.remove('hidden');
   if (v === 'genres') $('viewGenres').classList.remove('hidden');
   if (v === 'artists') $('viewArtists').classList.remove('hidden');
   if (v === 'artist') $('viewArtist').classList.remove('hidden');
+  if (v === 'album') $('viewAlbum').classList.remove('hidden');
+  if (v === 'song') $('viewSong').classList.remove('hidden');
   window.scrollTo(0, 0);
 }
 
@@ -408,6 +440,7 @@ function buildArtists() {
   if (list.length === 0) wrap.innerHTML = '<p class="status dim">アーティストがありません</p>';
 }
 function buildArtist(a) {
+  curArtist = a;
   $('artistName').textContent = a.name;
   $('artistMeta').textContent = a.category + ' / ' + a.genre;
   const am = $('artistAm');
@@ -422,12 +455,62 @@ function buildArtist(a) {
   wrap.innerHTML = '<h2 style="color:#ff8c1a;font-size:18px;">アルバム</h2>';
   if (albums.length === 0) wrap.innerHTML += '<p class="status dim">登録アルバムはありません</p>';
   for (const al of albums) {
-    const d = document.createElement('div');
-    d.className = 'rowbtn'; d.style.cursor = 'default';
+    const d = document.createElement('button');
+    d.className = 'rowbtn';
     d.textContent = (al.year ? al.year + '　' : '') + al.title;
+    d.addEventListener('click', () => buildAlbum(al));
     wrap.appendChild(d);
   }
   showView('artist');
+}
+
+function buildAlbum(al) {
+  curAlbum = al;
+  $('albumTitle').textContent = al.title;
+  $('albumMeta').textContent = (curArtist ? curArtist.name : '') + (al.year ? ' / ' + al.year : '') + (al.genre ? ' / ' + al.genre : '');
+  const note = $('albumNote');
+  note.textContent = al.note || '（アルバム詳細は未登録です）';
+  note.classList.add('clamp');
+  $('noteToggle').textContent = '… 続きを読む';
+  $('noteToggle').style.display = al.note ? 'inline-block' : 'none';
+  const songs = DB['songs.json'].filter(s => s.album_id === al.id)
+    .sort((x, y) => (parseInt(x.track_no, 10) || 0) - (parseInt(y.track_no, 10) || 0));
+  const wrap = $('songList');
+  wrap.innerHTML = '<h2 style="color:#ff8c1a;font-size:18px;">収録曲</h2>';
+  if (songs.length === 0) wrap.innerHTML += '<p class="status dim">登録されている曲はありません</p>';
+  for (const s of songs) {
+    const b = document.createElement('button');
+    b.className = 'rowbtn';
+    b.textContent = (s.track_no ? s.track_no + '. ' : '') + s.title;
+    b.addEventListener('click', () => buildSong(s));
+    wrap.appendChild(b);
+  }
+  showView('album');
+}
+
+function buildSong(s) {
+  $('songTitle').textContent = s.title;
+  $('songMeta').textContent = (curAlbum ? curAlbum.title : '') + (s.track_no ? ' / Track ' + s.track_no : '');
+  const wrap = $('songSections');
+  wrap.innerHTML = '';
+  const sections = [
+    ['メモ', s.memo],
+    ['歌詞', s.lyrics],
+    ['対訳', s.translation]
+  ];
+  for (const [label, text] of sections) {
+    if (!text) continue;
+    const h = document.createElement('h2');
+    h.style.cssText = 'color:#ff8c1a;font-size:18px;margin:20px 0 8px;';
+    h.textContent = label;
+    const d = document.createElement('div');
+    d.className = 'bio';
+    d.textContent = text;
+    wrap.appendChild(h);
+    wrap.appendChild(d);
+  }
+  if (wrap.innerHTML === '') wrap.innerHTML = '<p class="status dim">歌詞・対訳・メモは未登録です</p>';
+  showView('song');
 }
 </script>
 </body>
