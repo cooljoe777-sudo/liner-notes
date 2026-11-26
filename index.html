@@ -80,11 +80,14 @@
   .fieldbtns { margin-top: 6px; display: flex; gap: 6px; }
   button.danger { background: #500; color: #ffaaaa; border-color: #a33; }
   .editmini { font-size: 13px; padding: 8px 10px; white-space: nowrap; }
-  .lyricPair { display: grid; grid-template-columns: 1fr 1fr; column-gap: 32px; row-gap: 22px; }
-  .lpHead { color: #ff8c1a; font-size: 18px; margin-top: 20px; }
+  .lyricPair { display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; row-gap: 22px; }
+  .lpHead { color: #ff8c1a; font-size: 18px; margin-top: 20px; letter-spacing: 2px; text-shadow: 0 0 10px rgba(255,140,26,.5); }
   .lpCell { font-size: 14px; line-height: 1.9; white-space: pre-wrap; color: #eee; word-break: break-word; }
+  .memoNarrow { max-width: 700px; }
+  #viewSong h1.logo { font-family: "American Typewriter", "Courier New", serif; text-shadow: 0 0 12px rgba(255,140,26,.75), 0 0 34px rgba(255,140,26,.4); }
   @media (min-width: 900px) {
     .col:has(#viewSong:not(.hidden)) { max-width: 1180px; }
+    #viewSong { padding: 0 24px; }
   }
   .bottomnav { display: flex; gap: 8px; margin-top: 28px; border-top: 1px solid #333; padding-top: 14px; }
   .bottomnav .backbtn { flex: 1; padding: 12px; font-size: 15px; }
@@ -1118,17 +1121,17 @@ function buildSong(s) {
   $('songMeta').textContent = (curAlbum ? curAlbum.title : '') + (s.track_no ? ' / Track ' + s.track_no : '');
   const wrap = $('songSections');
   wrap.innerHTML = '';
-  const addSection = (label, text) => {
+  const addSection = (label, text, cls) => {
     const h = document.createElement('h2');
-    h.style.cssText = 'color:#ff8c1a;font-size:18px;margin:20px 0 8px;';
+    h.style.cssText = 'color:#ff8c1a;font-size:18px;margin:20px 0 8px;letter-spacing:2px;text-shadow:0 0 10px rgba(255,140,26,.5);';
     h.textContent = label;
     const d = document.createElement('div');
-    d.className = 'bio';
+    d.className = 'bio' + (cls ? ' ' + cls : '');
     d.textContent = text;
     wrap.appendChild(h);
     wrap.appendChild(d);
   };
-  if (s.memo) addSection('メモ', s.memo);
+  if (s.memo) addSection('メモ', s.memo, 'memoNarrow');
   const wide = window.matchMedia('(min-width: 900px)').matches;
   if (wide && s.lyrics && s.translation) {
     const grid = document.createElement('div');
