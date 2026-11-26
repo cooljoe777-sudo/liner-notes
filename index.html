@@ -12,10 +12,21 @@
   }
   .col { max-width: 430px; margin: 0 auto; padding: 16px 14px 40px; }
   h1.logo {
-    color: #ff8c1a; text-align: center; font-size: 34px; letter-spacing: 2px;
-    margin: 18px 0 4px; text-shadow: 0 0 12px rgba(255,140,26,.75), 0 0 34px rgba(255,140,26,.4);
+    color: #ff8c1a; text-align: center; font-size: 28px; letter-spacing: 2px;
+    margin: 10px 0 4px;
   }
-  .kiss { text-align: center; color: #ffb35c; font-size: 12px; line-height: 1.7; margin: 6px 4px 14px; }
+  .kiss { text-align: center; color: #cccccc; font-size: 14px; font-weight: bold; line-height: 1.7; margin: 10px 4px 0; }
+  .neonbtn {
+    display: block; width: 220px; height: 44px; margin: 20px auto; text-align: center;
+    font-size: 20px; font-weight: bold; padding: 0;
+    background: #000; color: #ff8c1a; border: 2px solid #ff8c1a; border-radius: 12px;
+    cursor: pointer; font-family: inherit;
+  }
+  .footer { text-align: center; color: #666; font-size: 12px; margin-top: 34px; }
+  #viewTop .kiss, #viewTop h1.logo { font-family: "American Typewriter", "Courier New", serif; }
+  #viewTop { display: flex; flex-direction: column; min-height: calc(100vh - 56px); }
+  #viewTop h1.logo { font-size: 26px; letter-spacing: 0; }
+  #viewTop .footer { margin-top: auto; }
   .intro { color: #ccc; font-size: 13px; line-height: 1.8; margin: 0 6px 18px; }
   .card { border: 1px solid #444; border-radius: 12px; padding: 16px; margin: 14px 0; background: #111; }
   .card h2 { color: #ff8c1a; font-size: 18px; margin: 0 0 10px; }
@@ -54,7 +65,7 @@
     width: 52px; height: 52px; border-radius: 50%; font-size: 24px;
     background: #2b2b2b; color: #ffb35c; border: 1px solid #ff8c1a; padding: 0;
   }
-  .topimg { width: 100%; height: auto; display: block; margin-bottom: 14px; border-radius: 8px; }
+  .topimg { width: calc(100% + 28px); margin: -16px -14px 0; height: 40vh; object-fit: contain; background: #000; display: block; }
   .photoimg { max-width: 100%; height: auto; display: block; margin: 12px 0; border-radius: 8px; }
   .logoimg { max-height: 76px; max-width: 92%; display: block; margin: 4px auto; }
   .editbar { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
@@ -109,10 +120,10 @@
     <!-- トップ -->
     <div id="viewTop">
       <img id="topImage" class="topimg hidden" alt="">
+      <p class="kiss">All right TETSU!<br>You Wanted the Best, You Got the Best!<br>The Hottest App in the World...</p>
       <h1 class="logo">LINER NOTES!!</h1>
-      <p class="kiss">All right TETSU! You Wanted the Best, You Got the Best!<br>The Hottest App in the World... LINER NOTES!!</p>
-      <p class="intro">あなたの音楽ライブラリです。カテゴリを選んでください。</p>
       <div id="categoryList"></div>
+      <p class="footer">Created by TETSU, Feb. 2026</p>
     </div>
 
     <!-- ジャンル -->
@@ -233,7 +244,7 @@
 
 <script src="https://accounts.google.com/gsi/client"></script>
 <script>
-const BUILD = '2026-11-26 20:15版';
+const BUILD = '2026-11-26 21:05版';
 const CLIENT_ID = '664730006638-2j4rccndibo7ld7k3heghuhc0453kdmf.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 const DATA_FILES = ['categories.json', 'genres.json', 'artists.json', 'albums.json', 'songs.json'];
@@ -661,7 +672,7 @@ function buildTop() {
   wrap.innerHTML = '';
   for (const c of DB['categories.json']) {
     const b = document.createElement('button');
-    b.className = 'bigbtn'; b.textContent = c.name;
+    b.className = 'neonbtn'; b.textContent = c.name;
     b.addEventListener('click', () => { curCategory = c.name; buildGenres(); showView('genres'); });
     wrap.appendChild(b);
   }
