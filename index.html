@@ -157,7 +157,7 @@
 
 <script src="https://accounts.google.com/gsi/client"></script>
 <script>
-const BUILD = '2026-11-25 15:50版';
+const BUILD = '2026-11-26 19:10版';
 const CLIENT_ID = '664730006638-2j4rccndibo7ld7k3heghuhc0453kdmf.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 const DATA_FILES = ['categories.json', 'genres.json', 'artists.json', 'albums.json', 'songs.json'];
@@ -237,7 +237,7 @@ function signOut() {
     fetch('https://oauth2.googleapis.com/revoke?token=' + encodeURIComponent(accessToken), { method: 'POST' }).catch(() => {});
   }
   accessToken = null; folderId = null; DB = {}; IMG = {}; imgUrlCache = {}; signedInOnce = false;
-  sessionStorage.removeItem('ln_token');
+  localStorage.removeItem('ln_token');
   sessionStorage.removeItem('ln_silent_tried');
   setStatus($('authStatus'), 'サインアウトしました', 'dim');
   $('signoutBtn').disabled = true;
@@ -253,7 +253,7 @@ async function initAuth() {
     const tok = h.get('access_token');
     const exp = parseInt(h.get('expires_in') || '3600', 10);
     if (tok) {
-      sessionStorage.setItem('ln_token', JSON.stringify({ tok: tok, until: Date.now() + (exp - 60) * 1000 }));
+      localStorage.setItem('ln_token', JSON.stringify({ tok: tok, until: Date.now() + (exp - 60) * 1000 }));
       history.replaceState(null, '', location.pathname + location.search);
       accessToken = tok;
       onSignedIn();
@@ -269,7 +269,7 @@ async function initAuth() {
   }
   // このタブで保持中のトークンがあれば使う
   try {
-    const saved = JSON.parse(sessionStorage.getItem('ln_token') || 'null');
+    const saved = JSON.parse(localStorage.getItem('ln_token') || 'null');
     if (saved && saved.until > Date.now()) {
       accessToken = saved.tok;
       onSignedIn();
@@ -304,7 +304,7 @@ async function api(url, options) {
   if (r.status === 401 && !options._retried) {
     options._retried = true;
     log('入館証の期限が切れたため、取り直します');
-    sessionStorage.removeItem('ln_token');
+    localStorage.removeItem('ln_token');
     await refreshToken();
     return api(url, options);
   }
