@@ -157,7 +157,7 @@
 
 <script src="https://accounts.google.com/gsi/client"></script>
 <script>
-const BUILD = '2026-11-26 19:10版';
+const BUILD = '2026-11-26 19:25版';
 const CLIENT_ID = '664730006638-2j4rccndibo7ld7k3heghuhc0453kdmf.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 const DATA_FILES = ['categories.json', 'genres.json', 'artists.json', 'albums.json', 'songs.json'];
@@ -238,6 +238,7 @@ function signOut() {
   }
   accessToken = null; folderId = null; DB = {}; IMG = {}; imgUrlCache = {}; signedInOnce = false;
   localStorage.removeItem('ln_token');
+  localStorage.removeItem('ln_cache');
   sessionStorage.removeItem('ln_silent_tried');
   setStatus($('authStatus'), 'サインアウトしました', 'dim');
   $('signoutBtn').disabled = true;
@@ -369,6 +370,32 @@ async function loadImageIndex() {
   const photoHits = names.filter(n => n.indexOf('logo_') !== 0 && artistIds.has(n.replace(/\.(jpg|jpeg|png|webp)$/i, '')));
   log('写真（アーティストと一致）: ' + photoHits.length + ' 件');
 }
+function saveCache() {
+  try {
+    localStorage.setItem('ln_cache', JSON.stringify({ at: Date.now(), folderId: folderId, DB: DB, IMG: IMG }));
+  } catch (e) { log('控えの保存に失敗しました: ' + e.message); }
+}
+function loadCache() {
+  try {
+    const c = JSON.parse(localStorage.getItem('ln_cache') || 'null');
+    if (c && c.DB && c.IMG && c.DB['artists.json']) return c;
+  } catch (e) {}
+  return null;
+}
+function refreshCurrentView() {
+  if (!$('viewSong').classList.contains('hidden')) return;
+  if (!$('viewAlbum').classList.contains('hidden') && curAlbum) {
+    const al = (DB['albums.json'] || []).find(x => x.id === curAlbum.id);
+    if (al) { buildAlbum(al); return; }
+  }
+  if (!$('viewArtist').classList.contains('hidden') && curArtist) {
+    const a = (DB['artists.json'] || []).find(x => x.id === curArtist.id);
+    if (a) { buildArtist(a); return; }
+  }
+  if (!$('viewArtists').classList.contains('hidden')) { buildArtists(); return; }
+  if (!$('viewGenres').classList.contains('hidden')) { buildGenres(); return; }
+  buildTop();
+}
 function imgName(base) {
   for (const ext of ['.jpg', '.jpeg', '.png', '.webp']) {
     if (IMG[base + ext]) return base + ext;
@@ -426,7 +453,7 @@ async function importImages() {
     try { await uploadImage(f); ok++; }
     catch (e) { failed.push(f.name); log('保存に失敗: ' + f.name + '（' + e.message + '）'); }
   }
-  try { await loadImageIndex(); } catch (e) {}
+  try { await loadImageIndex(); saveCache(); } catch (e) {}
   log('画像の取り込み結果: 成功 ' + ok + ' 件 / 失敗 ' + failed.length + ' 件');
   if (failed.length > 0) {
     setStatus($('dataStatus'), '保存できた画像: ' + ok + ' 件 / 失敗: ' + failed.length + ' 件（' + failed.slice(0, 5).join('、') + (failed.length > 5 ? ' ほか' : '') + '）', 'err');
@@ -438,32 +465,59 @@ async function importImages() {
 }
 
 async function afterSignIn() {
+  let usedCache = false;
+  const cache = loadCache();
+  if (cache) {
+    DB = cache.DB; IMG = cache.IMG; folderId = cache.folderId;
+    $('dataCard').classList.remove('hidden');
+    setStatus($('dataStatus'), '控えのデータで表示しています。最新のデータを確認しています…', 'dim');
+    setPanels(true);
+    buildTop();
+    $('appArea').classList.remove('hidden');
+    showView('top');
+    log('控えのデータで表示しました');
+    usedCache = true;
+  }
   try {
-    folderId = await findFolder();
+    const fid = await findFolder();
+    if (usedCache && fid !== folderId) {
+      localStorage.removeItem('ln_cache');
+      log('専用フォルダが変わっていたため、控えを破棄しました');
+    }
+    folderId = fid;
     log('専用フォルダを確認しました: ' + folderId);
     $('dataCard').classList.remove('hidden');
-    setStatus($('dataStatus'), 'Driveのデータを確認しています…', 'dim');
+    if (!usedCache) setStatus($('dataStatus'), 'Driveのデータを確認しています…', 'dim');
     let missing = [];
-    for (const name of DATA_FILES) {
-      const data = await downloadJson(name);
-      if (data === null) missing.push(name); else DB[name] = data;
-    }
+    const results = await Promise.all(DATA_FILES.map(name => downloadJson(name)));
+    DATA_FILES.forEach((name, i) => { if (results[i] === null) missing.push(name); else DB[name] = results[i]; });
     if (missing.length === 0) {
       setStatus($('dataStatus'), 'データを読み込みました（アーティスト ' + DB['artists.json'].length + ' 件）', 'ok');
       $('importArea').classList.add('hidden');
       await loadImageIndex();
-      setPanels(true);
-      buildTop();
-      $('appArea').classList.remove('hidden');
-      showView('top');
+      saveCache();
+      if (usedCache) {
+        refreshCurrentView();
+        log('最新のデータに更新しました');
+      } else {
+        setPanels(true);
+        buildTop();
+        $('appArea').classList.remove('hidden');
+        showView('top');
+      }
     } else {
+      localStorage.removeItem('ln_cache');
       setStatus($('dataStatus'), 'Driveに無いファイル: ' + missing.join('、') + '\n下から取り込んでください。', 'err');
       $('importArea').classList.remove('hidden');
       log('未配置のファイル: ' + missing.join(', '));
     }
   } catch (e) {
-    setStatus($('dataStatus'), 'エラー: ' + e.message, 'err');
-    log('エラー: ' + e.message);
+    if (usedCache) {
+      log('最新の確認でエラー（控えのまま表示）: ' + e.message);
+    } else {
+      setStatus($('dataStatus'), 'エラー: ' + e.message, 'err');
+      log('エラー: ' + e.message);
+    }
   }
 }
 
