@@ -84,7 +84,8 @@
   .lpHead { color: #ff8c1a; font-size: 18px; margin-top: 20px; letter-spacing: 2px; text-shadow: 0 0 10px rgba(255,140,26,.5); }
   .lpCell { font-size: 14px; line-height: 1.9; white-space: pre-wrap; color: #eee; word-break: break-word; }
   .memoNarrow { max-width: 700px; }
-  #viewSong h1.logo { font-family: "American Typewriter", "Courier New", serif; text-shadow: 0 0 12px rgba(255,140,26,.75), 0 0 34px rgba(255,140,26,.4); }
+  #viewSong h1.logo { font-family: "BIZ UDGothic", "BIZ UDゴシック", "Noto Sans Mono CJK JP", Consolas, monospace; letter-spacing: 0; text-shadow: none; }
+  .artistlogo { display: block; margin: 14px auto 6px; max-width: 92%; max-height: 110px; }
   @media (min-width: 900px) {
     .col:has(#viewSong:not(.hidden)) { max-width: 1180px; }
     #viewSong { padding: 0 24px; }
@@ -177,6 +178,7 @@
     <!-- アーティスト詳細 -->
     <div id="viewArtist" class="hidden">
       <button class="backbtn" data-back="artists">← 一覧へ戻る</button>
+      <img id="artistLogo" class="artistlogo hidden" alt="">
       <h1 class="logo" style="font-size:26px;" id="artistName"></h1>
       <p class="crumb" id="artistMeta"></p>
       <a class="amlink" id="artistAm" href="#" target="_blank" rel="noopener">Apple Musicで探す</a>
@@ -253,7 +255,7 @@
 
 <script src="https://accounts.google.com/gsi/client"></script>
 <script>
-const BUILD = '2026-11-26 21:20版';
+const BUILD = '2026-11-27 00:15版';
 const CLIENT_ID = '664730006638-2j4rccndibo7ld7k3heghuhc0453kdmf.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 const DATA_FILES = ['categories.json', 'genres.json', 'artists.json', 'albums.json', 'songs.json'];
@@ -751,6 +753,23 @@ function buildArtists() {
 function buildArtist(a) {
   curArtist = a;
   $('artistName').textContent = a.name;
+  const logoName = imgName('logo_' + a.id);
+  const h1 = $('artistName');
+  const lg = $('artistLogo');
+  if (logoName) {
+    h1.classList.add('hidden');
+    imgUrl(logoName).then(url => {
+      if (!curArtist || curArtist.id !== a.id) return;
+      if (url) { lg.src = url; lg.alt = a.name; lg.classList.remove('hidden'); }
+      else { lg.classList.add('hidden'); h1.classList.remove('hidden'); }
+    }).catch(() => {
+      if (!curArtist || curArtist.id !== a.id) return;
+      lg.classList.add('hidden'); h1.classList.remove('hidden');
+    });
+  } else {
+    lg.classList.add('hidden'); lg.removeAttribute('src');
+    h1.classList.remove('hidden');
+  }
   $('artistMeta').textContent = a.category + ' / ' + a.genre;
   const am = $('artistAm');
   if (a.am_url) { am.href = a.am_url; am.style.display = 'block'; } else { am.style.display = 'none'; }
