@@ -69,6 +69,8 @@
   .fieldbtns { margin-top: 6px; display: flex; gap: 6px; }
   button.danger { background: #500; color: #ffaaaa; border-color: #a33; }
   .editmini { font-size: 13px; padding: 8px 10px; white-space: nowrap; }
+  .bottomnav { display: flex; gap: 8px; margin-top: 28px; border-top: 1px solid #333; padding-top: 14px; }
+  .bottomnav .backbtn { flex: 1; padding: 12px; font-size: 15px; }
 </style>
 </head>
 <body>
@@ -131,6 +133,9 @@
         <p class="status err" id="genreAddMsg"></p>
       </div>
       <div id="genreList"></div>
+      <div class="bottomnav">
+        <button class="backbtn" data-back="top">← トップへ戻る</button>
+      </div>
     </div>
 
     <!-- アーティスト一覧 -->
@@ -143,6 +148,10 @@
         <button class="sub ctlbtn hidden" id="artistReorderCancel">キャンセル</button>
       </div>
       <div id="artistList"></div>
+      <div class="bottomnav">
+        <button class="backbtn" data-back="genres">← ジャンルへ戻る</button>
+        <button class="backbtn" data-back="top">トップへ戻る</button>
+      </div>
     </div>
 
     <!-- アーティスト詳細 -->
@@ -159,6 +168,10 @@
         <button class="sub ctlbtn" id="albumAddBtn">＋ アルバム追加</button>
       </div>
       <div id="albumList" style="margin-top:18px;"></div>
+      <div class="bottomnav">
+        <button class="backbtn" data-back="artists">← 一覧へ戻る</button>
+        <button class="backbtn" data-back="top">トップへ戻る</button>
+      </div>
     </div>
 
     <!-- アルバム詳細 -->
@@ -174,6 +187,10 @@
         <button class="sub ctlbtn" id="songAddBtn">＋ 曲追加</button>
       </div>
       <div id="songList" style="margin-top:18px;"></div>
+      <div class="bottomnav">
+        <button class="backbtn" data-back="artist">← アーティストへ戻る</button>
+        <button class="backbtn" data-back="top">トップへ戻る</button>
+      </div>
     </div>
 
     <!-- 曲詳細 -->
@@ -185,6 +202,10 @@
         <button class="sub ctlbtn" id="songEditBtn">曲を編集</button>
       </div>
       <div id="songSections"></div>
+      <div class="bottomnav">
+        <button class="backbtn" data-back="album">← アルバムへ戻る</button>
+        <button class="backbtn" data-back="top">トップへ戻る</button>
+      </div>
     </div>
 
     <!-- 編集フォーム -->
@@ -212,7 +233,7 @@
 
 <script src="https://accounts.google.com/gsi/client"></script>
 <script>
-const BUILD = '2026-11-26 20:00版';
+const BUILD = '2026-11-26 20:15版';
 const CLIENT_ID = '664730006638-2j4rccndibo7ld7k3heghuhc0453kdmf.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 const DATA_FILES = ['categories.json', 'genres.json', 'artists.json', 'albums.json', 'songs.json'];
