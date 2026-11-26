@@ -24,7 +24,7 @@
   }
   .footer { text-align: center; color: #666; font-size: 12px; margin-top: 34px; }
   #viewTop .kiss, #viewTop h1.logo { font-family: "American Typewriter", "Courier New", serif; }
-  #viewTop { display: flex; flex-direction: column; min-height: calc(100vh - 56px); }
+  #viewTop:not(.hidden) { display: flex; flex-direction: column; min-height: calc(100vh - 56px); }
   #viewTop h1.logo { font-size: 26px; letter-spacing: 0; }
   #viewTop .footer { margin-top: auto; }
   .intro { color: #ccc; font-size: 13px; line-height: 1.8; margin: 0 6px 18px; }
@@ -89,7 +89,7 @@
 
   <button id="gearBtn" title="設定">⚙</button>
   <!-- サインイン -->
-  <div class="card" id="authCard">
+  <div class="card hidden" id="authCard">
     <h2>サインイン</h2>
     <div class="status dim" id="authStatus">まだサインインしていません</div>
     <button id="signinBtn">Googleでサインイン</button>
@@ -235,7 +235,7 @@
 
   </div>
 
-  <div class="card" id="logCard">
+  <div class="card hidden" id="logCard">
     <h2>やったことの記録</h2>
     <div id="log"></div>
   </div>
@@ -244,7 +244,7 @@
 
 <script src="https://accounts.google.com/gsi/client"></script>
 <script>
-const BUILD = '2026-11-26 21:05版';
+const BUILD = '2026-11-26 21:20版';
 const CLIENT_ID = '664730006638-2j4rccndibo7ld7k3heghuhc0453kdmf.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 const DATA_FILES = ['categories.json', 'genres.json', 'artists.json', 'albums.json', 'songs.json'];
@@ -350,8 +350,9 @@ function signOut() {
   sessionStorage.removeItem('ln_silent_tried');
   setStatus($('authStatus'), 'サインアウトしました', 'dim');
   $('signoutBtn').disabled = true;
-  setPanels(false);
+  $('authCard').classList.remove('hidden');
   $('dataCard').classList.add('hidden');
+  $('logCard').classList.add('hidden');
   $('appArea').classList.add('hidden');
   log('サインアウトしました');
 }
@@ -373,6 +374,7 @@ async function initAuth() {
     const h = new URLSearchParams(location.hash.slice(1));
     history.replaceState(null, '', location.pathname + location.search);
     log('自動サインインは通りませんでした（ボタンからサインインできます）: ' + (h.get('error') || ''));
+    $('authCard').classList.remove('hidden');
     setStatus($('authStatus'), '「Googleでサインイン」を押してください', 'dim');
     return;
   }
@@ -391,6 +393,7 @@ async function initAuth() {
     startAuth(true);
     return;
   }
+  $('authCard').classList.remove('hidden');
   setStatus($('authStatus'), '「Googleでサインイン」を押してください', 'dim');
 }
 async function onSignedIn() {
@@ -577,7 +580,6 @@ async function afterSignIn() {
   const cache = loadCache();
   if (cache) {
     DB = cache.DB; IMG = cache.IMG; folderId = cache.folderId;
-    $('dataCard').classList.remove('hidden');
     setStatus($('dataStatus'), '控えのデータで表示しています。最新のデータを確認しています…', 'dim');
     setPanels(true);
     buildTop();
@@ -594,7 +596,6 @@ async function afterSignIn() {
     }
     folderId = fid;
     log('専用フォルダを確認しました: ' + folderId);
-    $('dataCard').classList.remove('hidden');
     if (!usedCache) setStatus($('dataStatus'), 'Driveのデータを確認しています…', 'dim');
     let missing = [];
     const results = await Promise.all(DATA_FILES.map(name => downloadJson(name)));
@@ -615,6 +616,7 @@ async function afterSignIn() {
       }
     } else {
       localStorage.removeItem('ln_cache');
+      $('dataCard').classList.remove('hidden');
       setStatus($('dataStatus'), 'Driveに無いファイル: ' + missing.join('、') + '\n下から取り込んでください。', 'err');
       $('importArea').classList.remove('hidden');
       log('未配置のファイル: ' + missing.join(', '));
@@ -623,6 +625,7 @@ async function afterSignIn() {
     if (usedCache) {
       log('最新の確認でエラー（控えのまま表示）: ' + e.message);
     } else {
+      $('dataCard').classList.remove('hidden');
       setStatus($('dataStatus'), 'エラー: ' + e.message, 'err');
       log('エラー: ' + e.message);
     }
