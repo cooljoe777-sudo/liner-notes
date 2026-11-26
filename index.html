@@ -57,6 +57,18 @@
   .topimg { width: 100%; height: auto; display: block; margin-bottom: 14px; border-radius: 8px; }
   .photoimg { max-width: 100%; height: auto; display: block; margin: 12px 0; border-radius: 8px; }
   .logoimg { max-height: 76px; max-width: 92%; display: block; margin: 4px auto; }
+  .editbar { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+  .ctlbtn { font-size: 14px; padding: 8px 12px; }
+  .rowwrap { display: flex; align-items: center; gap: 6px; margin: 8px 0; }
+  .rowwrap .rowbtn { flex: 1; margin: 0; }
+  .rowlabel { flex: 1; font-size: 16px; color: #ffb35c; padding: 10px 6px; }
+  .fieldbox { margin: 14px 0; }
+  .fieldlabel { color: #ff8c1a; font-size: 14px; font-weight: bold; margin-bottom: 6px; }
+  .fieldinput { width: 100%; background: #1a1a1a; color: #f5f5f5; border: 1px solid #555; border-radius: 8px; padding: 10px; font-family: inherit; font-size: 16px; }
+  textarea.fieldinput { line-height: 1.7; }
+  .fieldbtns { margin-top: 6px; display: flex; gap: 6px; }
+  button.danger { background: #500; color: #ffaaaa; border-color: #a33; }
+  .editmini { font-size: 13px; padding: 8px 10px; white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -105,6 +117,19 @@
     <div id="viewGenres" class="hidden">
       <button class="backbtn" data-back="top">← トップへ戻る</button>
       <p class="crumb" id="genreCrumb"></p>
+      <div class="editbar">
+        <button class="sub ctlbtn" id="genreAddBtn">＋ ジャンル追加</button>
+        <button class="sub ctlbtn" id="genreReorderBtn">並替</button>
+        <button class="sub ctlbtn hidden" id="genreReorderCancel">キャンセル</button>
+      </div>
+      <div id="genreAddForm" class="hidden">
+        <input type="text" id="genreNewName" class="fieldinput" placeholder="ジャンル名">
+        <div class="editbar">
+          <button id="genreAddOk">追加する</button>
+          <button class="sub" id="genreAddCancel">やめる</button>
+        </div>
+        <p class="status err" id="genreAddMsg"></p>
+      </div>
       <div id="genreList"></div>
     </div>
 
@@ -112,6 +137,11 @@
     <div id="viewArtists" class="hidden">
       <button class="backbtn" data-back="genres">← ジャンルへ戻る</button>
       <p class="crumb" id="artistCrumb"></p>
+      <div class="editbar">
+        <button class="sub ctlbtn" id="artistAddBtn">＋ アーティスト追加</button>
+        <button class="sub ctlbtn" id="artistReorderBtn">並替</button>
+        <button class="sub ctlbtn hidden" id="artistReorderCancel">キャンセル</button>
+      </div>
       <div id="artistList"></div>
     </div>
 
@@ -124,6 +154,10 @@
       <img id="artistPhoto" class="photoimg hidden" alt="">
       <div class="bio clamp" id="artistBio"></div>
       <button class="sub" id="bioToggle">… 続きを読む</button>
+      <div class="editbar">
+        <button class="sub ctlbtn" id="artistEditBtn">アーティストを編集</button>
+        <button class="sub ctlbtn" id="albumAddBtn">＋ アルバム追加</button>
+      </div>
       <div id="albumList" style="margin-top:18px;"></div>
     </div>
 
@@ -135,6 +169,10 @@
       <img id="albumImage" class="photoimg hidden" alt="">
       <div class="bio clamp" id="albumNote"></div>
       <button class="sub" id="noteToggle">… 続きを読む</button>
+      <div class="editbar">
+        <button class="sub ctlbtn" id="albumEditBtn">アルバムを編集</button>
+        <button class="sub ctlbtn" id="songAddBtn">＋ 曲追加</button>
+      </div>
       <div id="songList" style="margin-top:18px;"></div>
     </div>
 
@@ -143,7 +181,24 @@
       <button class="backbtn" data-back="album">← アルバムへ戻る</button>
       <h1 class="logo" style="font-size:24px;" id="songTitle"></h1>
       <p class="crumb" id="songMeta"></p>
+      <div class="editbar">
+        <button class="sub ctlbtn" id="songEditBtn">曲を編集</button>
+      </div>
       <div id="songSections"></div>
+    </div>
+
+    <!-- 編集フォーム -->
+    <div id="viewEdit" class="hidden">
+      <h1 class="logo" style="font-size:24px;" id="editTitle">編集</h1>
+      <p class="crumb" id="editInfo"></p>
+      <div id="editFields"></div>
+      <p class="status" id="editStatus"></p>
+      <div class="editbar">
+        <button id="editSave">保存</button>
+        <button class="sub" id="editCancel">キャンセル</button>
+        <button class="sub" id="editReset">入力内容をリセット</button>
+      </div>
+      <button class="danger" id="editDelete" style="display:none;">データを削除</button>
     </div>
 
   </div>
@@ -157,7 +212,7 @@
 
 <script src="https://accounts.google.com/gsi/client"></script>
 <script>
-const BUILD = '2026-11-26 19:25版';
+const BUILD = '2026-11-26 20:00版';
 const CLIENT_ID = '664730006638-2j4rccndibo7ld7k3heghuhc0453kdmf.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 const DATA_FILES = ['categories.json', 'genres.json', 'artists.json', 'albums.json', 'songs.json'];
@@ -174,6 +229,10 @@ let curCategory = null;
 let curGenre = null;
 let curArtist = null;
 let curAlbum = null;
+let curSong = null;
+let genreEditMode = false;
+let artistEditMode = false;
+let reorderSnapshot = null;
 
 const $ = id => document.getElementById(id);
 function log(msg) {
@@ -194,6 +253,23 @@ window.addEventListener('load', () => {
   $('importBtn').addEventListener('click', importData);
   $('importImagesBtn').addEventListener('click', importImages);
   $('gearBtn').addEventListener('click', () => setPanels(!panelsHidden()));
+  $('genreAddBtn').addEventListener('click', () => { $('genreAddForm').classList.toggle('hidden'); $('genreAddMsg').textContent = ''; });
+  $('genreAddCancel').addEventListener('click', () => { $('genreAddForm').classList.add('hidden'); });
+  $('genreAddOk').addEventListener('click', addGenre);
+  $('genreReorderBtn').addEventListener('click', toggleGenreReorder);
+  $('genreReorderCancel').addEventListener('click', cancelGenreReorder);
+  $('artistAddBtn').addEventListener('click', () => openEdit('artist', { category: curCategory, genre: curGenre }, null, backToArtists));
+  $('artistReorderBtn').addEventListener('click', toggleArtistReorder);
+  $('artistReorderCancel').addEventListener('click', cancelArtistReorder);
+  $('artistEditBtn').addEventListener('click', () => { if (curArtist) openEdit('artist', curArtist, null, backFromArtistForm); });
+  $('albumAddBtn').addEventListener('click', () => { if (curArtist) openEdit('album', {}, curArtist.id, backFromAlbumForm); });
+  $('albumEditBtn').addEventListener('click', () => { if (curAlbum) openEdit('album', curAlbum, curArtist ? curArtist.id : null, backFromAlbumFormToAlbum); });
+  $('songAddBtn').addEventListener('click', () => { if (curAlbum) openEdit('song', {}, curAlbum.id, backFromSongFormToAlbum); });
+  $('songEditBtn').addEventListener('click', () => { if (curSong) openEdit('song', curSong, curAlbum ? curAlbum.id : null, backFromSongFormToSong); });
+  $('editSave').addEventListener('click', saveEdit);
+  $('editDelete').addEventListener('click', deleteEdit);
+  $('editReset').addEventListener('click', resetEdit);
+  $('editCancel').addEventListener('click', () => { if (editCtx) { const b = editCtx.backFn; editCtx = null; b('cancel'); } });
   document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => {
     const to = b.dataset.back;
     if (to === 'artist' && curArtist) { buildArtist(curArtist); return; }
@@ -547,13 +623,14 @@ async function importData() {
 }
 
 function showView(v) {
-  for (const id of ['viewTop','viewGenres','viewArtists','viewArtist','viewAlbum','viewSong']) $(id).classList.add('hidden');
+  for (const id of ['viewTop','viewGenres','viewArtists','viewArtist','viewAlbum','viewSong','viewEdit']) $(id).classList.add('hidden');
   if (v === 'top') $('viewTop').classList.remove('hidden');
   if (v === 'genres') $('viewGenres').classList.remove('hidden');
   if (v === 'artists') $('viewArtists').classList.remove('hidden');
   if (v === 'artist') $('viewArtist').classList.remove('hidden');
   if (v === 'album') $('viewAlbum').classList.remove('hidden');
   if (v === 'song') $('viewSong').classList.remove('hidden');
+  if (v === 'edit') $('viewEdit').classList.remove('hidden');
   window.scrollTo(0, 0);
 }
 
@@ -570,27 +647,46 @@ function buildTop() {
 }
 function buildGenres() {
   $('genreCrumb').textContent = 'カテゴリ: ' + curCategory;
+  $('genreReorderBtn').textContent = genreEditMode ? '完了' : '並替';
+  $('genreReorderCancel').classList.toggle('hidden', !genreEditMode);
+  $('genreAddBtn').classList.toggle('hidden', genreEditMode);
   const wrap = $('genreList');
   wrap.innerHTML = '';
   const list = DB['genres.json'].filter(g => g.category === curCategory);
   for (const g of list) {
     const count = DB['artists.json'].filter(a => a.category === curCategory && a.genre === g.name).length;
-    const b = document.createElement('button');
-    b.className = 'rowbtn';
-    b.innerHTML = '';
-    b.textContent = g.name + ' ';
-    const s = document.createElement('small'); s.textContent = '（' + count + '件）'; b.appendChild(s);
-    b.addEventListener('click', () => { curGenre = g.name; buildArtists(); showView('artists'); });
-    wrap.appendChild(b);
+    if (genreEditMode) {
+      wrap.appendChild(ctlRow(g.name + '（' + count + '件）',
+        () => { moveInGroup('genres.json', x => x.category === curCategory, g.id, -1); buildGenres(); },
+        () => { moveInGroup('genres.json', x => x.category === curCategory, g.id, 1); buildGenres(); },
+        () => deleteGenre(g)));
+    } else {
+      const b = document.createElement('button');
+      b.className = 'rowbtn';
+      b.textContent = g.name + ' ';
+      const s = document.createElement('small'); s.textContent = '（' + count + '件）'; b.appendChild(s);
+      b.addEventListener('click', () => { curGenre = g.name; buildArtists(); showView('artists'); });
+      wrap.appendChild(b);
+    }
   }
   if (list.length === 0) wrap.innerHTML = '<p class="status dim">ジャンルがありません</p>';
 }
 function buildArtists() {
   $('artistCrumb').textContent = curCategory + ' / ' + curGenre;
+  $('artistReorderBtn').textContent = artistEditMode ? '完了' : '並替';
+  $('artistReorderCancel').classList.toggle('hidden', !artistEditMode);
+  $('artistAddBtn').classList.toggle('hidden', artistEditMode);
   const wrap = $('artistList');
   wrap.innerHTML = '';
   const list = DB['artists.json'].filter(a => a.category === curCategory && a.genre === curGenre);
   for (const a of list) {
+    if (artistEditMode) {
+      wrap.appendChild(ctlRow(a.name,
+        () => { moveInGroup('artists.json', x => x.category === curCategory && x.genre === curGenre, a.id, -1); buildArtists(); },
+        () => { moveInGroup('artists.json', x => x.category === curCategory && x.genre === curGenre, a.id, 1); buildArtists(); },
+        () => deleteArtistFromList(a)));
+      continue;
+    }
     const b = document.createElement('button');
     b.className = 'rowbtn'; b.textContent = a.name;
     b.addEventListener('click', () => buildArtist(a));
@@ -625,11 +721,18 @@ function buildArtist(a) {
   wrap.innerHTML = '<h2 style="color:#ff8c1a;font-size:18px;">アルバム</h2>';
   if (albums.length === 0) wrap.innerHTML += '<p class="status dim">登録アルバムはありません</p>';
   for (const al of albums) {
+    const row = document.createElement('div');
+    row.className = 'rowwrap';
     const d = document.createElement('button');
     d.className = 'rowbtn';
     d.textContent = (al.year ? al.year + '　' : '') + al.title;
     d.addEventListener('click', () => buildAlbum(al));
-    wrap.appendChild(d);
+    row.appendChild(d);
+    const eb = document.createElement('button');
+    eb.className = 'sub editmini'; eb.textContent = '編集';
+    eb.addEventListener('click', () => openEdit('album', al, a.id, backFromAlbumForm));
+    row.appendChild(eb);
+    wrap.appendChild(row);
   }
   showView('artist');
 }
@@ -650,16 +753,323 @@ function buildAlbum(al) {
   wrap.innerHTML = '<h2 style="color:#ff8c1a;font-size:18px;">収録曲</h2>';
   if (songs.length === 0) wrap.innerHTML += '<p class="status dim">登録されている曲はありません</p>';
   for (const s of songs) {
+    const row = document.createElement('div');
+    row.className = 'rowwrap';
     const b = document.createElement('button');
     b.className = 'rowbtn';
     b.textContent = (s.track_no ? s.track_no + '. ' : '') + s.title;
     b.addEventListener('click', () => buildSong(s));
-    wrap.appendChild(b);
+    row.appendChild(b);
+    const eb = document.createElement('button');
+    eb.className = 'sub editmini'; eb.textContent = '編集';
+    eb.addEventListener('click', () => openEdit('song', s, al.id, backFromSongFormToAlbum));
+    row.appendChild(eb);
+    wrap.appendChild(row);
   }
   showView('album');
 }
 
+// ===== 編集機能 =====
+function newId() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+async function persistFiles(names) {
+  for (const n of names) await uploadJson(n, JSON.stringify(DB[n], null, 2));
+  saveCache();
+}
+function freshArtist() { if (!curArtist) return null; return (DB['artists.json'] || []).find(a => a.id === curArtist.id) || null; }
+function freshAlbum() { if (!curAlbum) return null; return (DB['albums.json'] || []).find(a => a.id === curAlbum.id) || null; }
+
+function ctlRow(label, onUp, onDown, onDel) {
+  const row = document.createElement('div');
+  row.className = 'rowwrap';
+  const s = document.createElement('span');
+  s.className = 'rowlabel'; s.textContent = label;
+  row.appendChild(s);
+  const mk = (t, fn) => {
+    const b = document.createElement('button');
+    b.className = 'sub ctlbtn'; b.textContent = t;
+    b.addEventListener('click', fn);
+    row.appendChild(b);
+  };
+  mk('↑', onUp); mk('↓', onDown); mk('削除', onDel);
+  return row;
+}
+function applyGroupOrder(file, pred, orderedIds) {
+  const map = {};
+  for (const it of DB[file]) map[it.id] = it;
+  const others = DB[file].filter(x => !pred(x));
+  DB[file] = others.concat(orderedIds.map(id => map[id]).filter(Boolean));
+}
+function moveInGroup(file, pred, id, dir) {
+  const group = DB[file].filter(pred);
+  const idx = group.findIndex(x => x.id === id);
+  const j = idx + dir;
+  if (idx < 0 || j < 0 || j >= group.length) return;
+  const tmp = group[idx]; group[idx] = group[j]; group[j] = tmp;
+  applyGroupOrder(file, pred, group.map(x => x.id));
+}
+function restoreOrder(snap) {
+  const map = {};
+  for (const it of DB[snap.file]) map[it.id] = it;
+  const restored = snap.ids.map(id => map[id]).filter(Boolean);
+  const extra = DB[snap.file].filter(it => snap.ids.indexOf(it.id) < 0);
+  DB[snap.file] = restored.concat(extra);
+}
+function cascadeDeleteArtist(id) {
+  const albumIds = DB['albums.json'].filter(al => al.artist_id === id).map(al => al.id);
+  DB['songs.json'] = DB['songs.json'].filter(s => albumIds.indexOf(s.album_id) < 0);
+  DB['albums.json'] = DB['albums.json'].filter(al => al.artist_id !== id);
+  DB['artists.json'] = DB['artists.json'].filter(a => a.id !== id);
+}
+async function deleteGenre(g) {
+  if (!confirm('ジャンル「' + g.name + '」を削除しますか？\n（アーティストのデータは消えませんが、このジャンルからは表示されなくなります）')) return;
+  DB['genres.json'] = DB['genres.json'].filter(x => x.id !== g.id);
+  try { await persistFiles(['genres.json']); log('ジャンルを削除しました: ' + g.name); }
+  catch (e) { log('削除の保存エラー: ' + e.message); }
+  buildGenres();
+}
+async function deleteArtistFromList(a) {
+  if (!confirm('「' + a.name + '」を削除しますか？\nこのアーティストのアルバムと曲もすべて削除されます。')) return;
+  cascadeDeleteArtist(a.id);
+  try { await persistFiles(['artists.json', 'albums.json', 'songs.json']); log('削除しました: ' + a.name); }
+  catch (e) { log('削除の保存エラー: ' + e.message); }
+  buildArtists();
+}
+async function addGenre() {
+  const name = $('genreNewName').value.trim();
+  if (!name) { $('genreAddMsg').textContent = 'ジャンル名を入れてください'; return; }
+  if (DB['genres.json'].some(g => g.name === name && g.category === curCategory)) { $('genreAddMsg').textContent = '同じジャンルが既にあります'; return; }
+  DB['genres.json'].push({ id: newId(), name: name, category: curCategory });
+  try { await persistFiles(['genres.json']); log('ジャンルを追加しました: ' + name); }
+  catch (e) { log('ジャンル追加の保存エラー: ' + e.message); }
+  $('genreNewName').value = '';
+  $('genreAddMsg').textContent = '';
+  $('genreAddForm').classList.add('hidden');
+  buildGenres();
+}
+async function toggleGenreReorder() {
+  if (!genreEditMode) {
+    genreEditMode = true;
+    reorderSnapshot = { file: 'genres.json', ids: DB['genres.json'].map(g => g.id) };
+    buildGenres();
+  } else {
+    genreEditMode = false;
+    try { await persistFiles(['genres.json']); log('ジャンルの並び順を保存しました'); }
+    catch (e) { log('並び順の保存エラー: ' + e.message); }
+    reorderSnapshot = null;
+    buildGenres();
+  }
+}
+function cancelGenreReorder() {
+  if (reorderSnapshot) { restoreOrder(reorderSnapshot); reorderSnapshot = null; }
+  genreEditMode = false;
+  buildGenres();
+}
+async function toggleArtistReorder() {
+  if (!artistEditMode) {
+    artistEditMode = true;
+    reorderSnapshot = { file: 'artists.json', ids: DB['artists.json'].map(a => a.id) };
+    buildArtists();
+  } else {
+    artistEditMode = false;
+    try { await persistFiles(['artists.json']); log('アーティストの並び順を保存しました'); }
+    catch (e) { log('並び順の保存エラー: ' + e.message); }
+    reorderSnapshot = null;
+    buildArtists();
+  }
+}
+function cancelArtistReorder() {
+  if (reorderSnapshot) { restoreOrder(reorderSnapshot); reorderSnapshot = null; }
+  artistEditMode = false;
+  buildArtists();
+}
+
+// 編集フォームからの戻り先
+function backToArtists(r) { buildArtists(); showView('artists'); }
+function backFromArtistForm(r) {
+  if (r === null) { buildArtists(); showView('artists'); return; }
+  const a = (r && r !== 'cancel') ? r : freshArtist();
+  if (a) buildArtist(a); else { buildArtists(); showView('artists'); }
+}
+function backFromAlbumForm(r) {
+  const a = freshArtist();
+  if (a) buildArtist(a); else { buildArtists(); showView('artists'); }
+}
+function backFromAlbumFormToAlbum(r) {
+  if (r === null) { backFromAlbumForm(r); return; }
+  const al = (r && r !== 'cancel') ? r : freshAlbum();
+  if (al) buildAlbum(al); else backFromAlbumForm(r);
+}
+function backFromSongFormToAlbum(r) {
+  const al = freshAlbum();
+  if (al) buildAlbum(al); else backFromAlbumForm(r);
+}
+function backFromSongFormToSong(r) {
+  if (r === null) { backFromSongFormToAlbum(r); return; }
+  if (r && r !== 'cancel') { buildSong(r); return; }
+  if (curSong) buildSong(curSong);
+}
+
+const EDIT_FIELDS = {
+  artist: [['text', 'name', 'アーティスト名'], ['text', 'genre', 'ジャンル'], ['seg', 'category', 'カテゴリ'], ['text', 'am_url', 'Apple Music URL'], ['long', 'bio', 'バイオグラフィ']],
+  album: [['text', 'title', 'アルバム名'], ['text', 'year', 'リリース年'], ['long', 'note', 'ライナーノーツ']],
+  song: [['text', 'track_no', 'トラック番号'], ['text', 'title', '曲名'], ['long', 'lyrics', '歌詞'], ['long', 'translation', '対訳'], ['long', 'memo', 'メモ']]
+};
+const FILE_OF_MODE = { artist: 'artists.json', album: 'albums.json', song: 'songs.json' };
+const LABEL_OF_MODE = { artist: 'アーティスト', album: 'アルバム', song: '曲' };
+let editCtx = null;
+
+function openEdit(mode, data, parentId, backFn) {
+  editCtx = { mode: mode, parentId: parentId, backFn: backFn, isNew: !(data && data.id), inputs: {} };
+  editCtx.data = Object.assign({}, data || {});
+  if (editCtx.isNew) editCtx.data.id = newId();
+  $('editTitle').textContent = LABEL_OF_MODE[mode] + (editCtx.isNew ? 'の追加' : 'の編集');
+  $('editInfo').textContent = mode === 'song' && curAlbum ? 'アルバム: ' + curAlbum.title
+    : (mode === 'album' && curArtist ? 'アーティスト: ' + curArtist.name : '');
+  const wrap = $('editFields');
+  wrap.innerHTML = '';
+  for (const [type, key, label] of EDIT_FIELDS[mode]) {
+    const box = document.createElement('div');
+    box.className = 'fieldbox';
+    const lab = document.createElement('div');
+    lab.className = 'fieldlabel'; lab.textContent = label;
+    box.appendChild(lab);
+    let el;
+    if (type === 'seg') {
+      el = document.createElement('select');
+      const names = DB['categories.json'].map(c => c.name);
+      const cur = String(editCtx.data[key] || names[0] || '');
+      if (cur && names.indexOf(cur) < 0) names.push(cur);
+      for (const n of names) {
+        const o = document.createElement('option');
+        o.value = n; o.textContent = n;
+        el.appendChild(o);
+      }
+      el.value = cur;
+    } else if (type === 'long') {
+      el = document.createElement('textarea');
+      el.rows = 6;
+      el.value = String(editCtx.data[key] == null ? '' : editCtx.data[key]);
+    } else {
+      el = document.createElement('input');
+      el.type = 'text';
+      el.value = String(editCtx.data[key] == null ? '' : editCtx.data[key]);
+    }
+    el.className = 'fieldinput';
+    box.appendChild(el);
+    if (type !== 'seg') {
+      const btns = document.createElement('div');
+      btns.className = 'fieldbtns';
+      const bc = document.createElement('button');
+      bc.className = 'sub ctlbtn'; bc.textContent = 'クリア';
+      bc.addEventListener('click', () => { el.value = ''; el.focus(); });
+      const bp = document.createElement('button');
+      bp.className = 'sub ctlbtn'; bp.textContent = '貼り付け';
+      bp.addEventListener('click', async () => {
+        try { el.value = await navigator.clipboard.readText(); }
+        catch (e) { log('貼り付けに失敗しました: ' + e.message); }
+      });
+      btns.appendChild(bc); btns.appendChild(bp);
+      box.appendChild(btns);
+    }
+    editCtx.inputs[key] = { type: type, el: el };
+    wrap.appendChild(box);
+  }
+  $('editDelete').style.display = editCtx.isNew ? 'none' : 'block';
+  setStatus($('editStatus'), '', '');
+  showView('edit');
+}
+function resetEdit() {
+  if (!editCtx) return;
+  for (const key of Object.keys(editCtx.inputs)) {
+    const f = editCtx.inputs[key];
+    f.el.value = String(editCtx.data[key] == null ? '' : editCtx.data[key]);
+  }
+}
+async function saveEdit() {
+  if (!editCtx) return;
+  const d = editCtx.data;
+  for (const key of Object.keys(editCtx.inputs)) d[key] = editCtx.inputs[key].el.value;
+  const mode = editCtx.mode;
+  if (mode === 'album') d.artist_id = editCtx.parentId;
+  if (mode === 'song') d.album_id = editCtx.parentId;
+  const nameVal = mode === 'artist' ? d.name : d.title;
+  if (!String(nameVal || '').trim()) {
+    setStatus($('editStatus'), LABEL_OF_MODE[mode] + '名を入れてください', 'err');
+    return;
+  }
+  $('editSave').disabled = true;
+  try {
+    const files = [FILE_OF_MODE[mode]];
+    const arr = DB[files[0]];
+    if (editCtx.isNew) arr.push(d);
+    else {
+      const i = arr.findIndex(x => x.id === d.id);
+      if (i >= 0) arr[i] = d; else arr.push(d);
+    }
+    if (mode === 'artist' && d.genre && d.category) {
+      const exists = DB['genres.json'].some(g => g.name === d.genre && g.category === d.category);
+      if (!exists) {
+        DB['genres.json'].push({ id: newId(), name: d.genre, category: d.category });
+        files.push('genres.json');
+        log('ジャンル「' + d.genre + '」を新規登録しました');
+      }
+    }
+    await persistFiles(files);
+    log(LABEL_OF_MODE[mode] + 'を保存しました: ' + (d.name || d.title || ''));
+    const back = editCtx.backFn;
+    editCtx = null;
+    $('editSave').disabled = false;
+    back(d);
+  } catch (e) {
+    setStatus($('editStatus'), '保存エラー: ' + e.message, 'err');
+    log('保存エラー: ' + e.message);
+    $('editSave').disabled = false;
+  }
+}
+async function deleteEdit() {
+  if (!editCtx || editCtx.isNew) return;
+  const mode = editCtx.mode;
+  const d = editCtx.data;
+  const label = d.name || d.title || '';
+  let msg = '「' + label + '」を削除しますか？';
+  if (mode === 'artist') msg += '\nこのアーティストのアルバムと曲もすべて削除されます。';
+  if (mode === 'album') msg += '\nこのアルバムの曲もすべて削除されます。';
+  if (!confirm(msg)) return;
+  $('editDelete').disabled = true;
+  try {
+    let files;
+    if (mode === 'artist') {
+      cascadeDeleteArtist(d.id);
+      files = ['artists.json', 'albums.json', 'songs.json'];
+    } else if (mode === 'album') {
+      DB['songs.json'] = DB['songs.json'].filter(s => s.album_id !== d.id);
+      DB['albums.json'] = DB['albums.json'].filter(al => al.id !== d.id);
+      files = ['albums.json', 'songs.json'];
+    } else {
+      DB['songs.json'] = DB['songs.json'].filter(s => s.id !== d.id);
+      files = ['songs.json'];
+    }
+    await persistFiles(files);
+    log('削除しました: ' + label);
+    const back = editCtx.backFn;
+    editCtx = null;
+    $('editDelete').disabled = false;
+    back(null);
+  } catch (e) {
+    setStatus($('editStatus'), '削除エラー: ' + e.message, 'err');
+    log('削除エラー: ' + e.message);
+    $('editDelete').disabled = false;
+  }
+}
+
 function buildSong(s) {
+  curSong = s;
   $('songTitle').textContent = s.title;
   $('songMeta').textContent = (curAlbum ? curAlbum.title : '') + (s.track_no ? ' / Track ' + s.track_no : '');
   const wrap = $('songSections');
