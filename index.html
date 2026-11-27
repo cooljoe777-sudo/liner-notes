@@ -106,7 +106,7 @@
     #artistBio.clamp { max-height: 640px; }
     #bioToggle { grid-column: 1 / -1; grid-row: 9; justify-self: start; }
     #artistAm { grid-column: 2; grid-row: 7; margin-top: 0; align-self: start; }
-    #albumList { grid-column: 2; grid-row: 7; align-self: start; margin-top: 74px !important; }
+    #albumList { grid-column: 2; grid-row: 7; align-self: start; margin-top: 64px !important; }
     #viewArtist > .bottomnav { grid-column: 1 / -1; grid-row: 10; }
   }
   .bottomnav { display: flex; gap: 8px; margin-top: 28px; border-top: 1px solid #333; padding-top: 14px; }
@@ -122,7 +122,9 @@
   }
   #artistList .rowbtn.haslogo { border-color: #4a4a4a; }
   #artistList .logoimg { max-height: 48px; margin: 0 auto; }
-  #albumList .rowbtn { min-height: 44px; }
+  #albumList .rowbtn { min-height: 36px; padding-top: 4px; padding-bottom: 4px; }
+  #albumList h2 { margin: 6px 0 8px; }
+  #settingsList .rowbtn { white-space: nowrap; }
   .ampick { position: fixed; inset: 0; background: rgba(0,0,0,.8); z-index: 100; display: flex; align-items: center; justify-content: center; }
   .ampick.hidden { display: none; }
   .ampickbox { background: #161616; border: 1px solid #555; border-radius: 12px; padding: 16px; width: min(92vw, 400px); max-height: 80vh; overflow: auto; }
@@ -293,9 +295,11 @@
 
   <input type="file" id="imgPick" accept="image/*" class="hidden">
   <div id="settingsPick" class="ampick hidden">
-    <p class="ampicktitle">設定</p>
-    <div id="settingsList"></div>
-    <button class="sub ctlbtn" id="settingsCancel" style="width:100%; margin-top:10px;">キャンセル</button>
+    <div class="ampickbox">
+      <p class="ampicktitle">設定</p>
+      <div id="settingsList"></div>
+      <button class="sub ctlbtn" id="settingsCancel">キャンセル</button>
+    </div>
   </div>
   <div id="amPick" class="ampick hidden">
     <div class="ampickbox">
@@ -309,7 +313,7 @@
 
 <script src="https://accounts.google.com/gsi/client"></script>
 <script>
-const BUILD = '2026-11-27 22:45版';
+const BUILD = '2026-11-27 23:05版';
 const CLIENT_ID = '664730006638-2j4rccndibo7ld7k3heghuhc0453kdmf.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 const DATA_FILES = ['categories.json', 'genres.json', 'artists.json', 'albums.json', 'songs.json'];
