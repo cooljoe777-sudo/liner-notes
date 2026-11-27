@@ -215,6 +215,12 @@
       <div class="bio clamp" id="artistBio"></div>
       <button class="sub ctlbtn" id="bioToggle">… 続きを読む</button>
       <a class="amlink" id="artistAm" href="#" target="_blank" rel="noopener">Apple Musicで探す</a>
+      <div class="editbar">
+        <button class="sub ctlbtn" id="logoSetBtn">ロゴを設定</button>
+        <button class="sub ctlbtn" id="logoDelBtn">ロゴを削除</button>
+        <button class="sub ctlbtn" id="photoSetBtn">写真を設定</button>
+        <button class="sub ctlbtn" id="photoDelBtn">写真を削除</button>
+      </div>
       <div id="albumList" style="margin-top:18px;"></div>
       <div class="bottomnav">
         <button class="backbtn" data-back="artists">← 一覧へ戻る</button>
@@ -236,6 +242,10 @@
       <img id="albumImage" class="photoimg hidden" alt="">
       <div class="bio clamp" id="albumNote"></div>
       <button class="sub ctlbtn" id="noteToggle">… 続きを読む</button>
+      <div class="editbar">
+        <button class="sub ctlbtn" id="albumImgSetBtn">画像を設定</button>
+        <button class="sub ctlbtn" id="albumImgDelBtn">画像を削除</button>
+      </div>
       <div id="songList" style="margin-top:18px;"></div>
       <div class="bottomnav">
         <button class="backbtn" data-back="artist">アーティストへ戻る</button>
@@ -281,6 +291,7 @@
     <div id="log"></div>
   </div>
 
+  <input type="file" id="imgPick" accept="image/*" class="hidden">
   <div id="amPick" class="ampick hidden">
     <div class="ampickbox">
       <p class="ampicktitle">アーティストを選択</p>
@@ -293,7 +304,7 @@
 
 <script src="https://accounts.google.com/gsi/client"></script>
 <script>
-const BUILD = '2026-11-27 15:40版';
+const BUILD = '2026-11-27 17:30版';
 const CLIENT_ID = '664730006638-2j4rccndibo7ld7k3heghuhc0453kdmf.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 const DATA_FILES = ['categories.json', 'genres.json', 'artists.json', 'albums.json', 'songs.json'];
@@ -338,6 +349,40 @@ $('artistAm').addEventListener('click', (e) => {
   if (curArtist && !curArtist.am_url) { e.preventDefault(); findAmUrl(curArtist); }
 });
 $('amPickCancel').addEventListener('click', () => $('amPick').classList.add('hidden'));
+$('imgPick').addEventListener('change', async () => {
+  const f = $('imgPick').files && $('imgPick').files[0];
+  const job = imgPickJob; imgPickJob = null;
+  if (!f || !job) return;
+  try { await setImageForBase(job.base, f); if (job.after) job.after(); }
+  catch (e) { alert('画像の保存に失敗しました: ' + e.message); log('画像の保存エラー: ' + e.message); }
+});
+$('logoSetBtn').addEventListener('click', () => { if (curArtist) pickImageFor('logo_' + curArtist.id, () => { if (curArtist) buildArtist(curArtist); }); });
+$('photoSetBtn').addEventListener('click', () => { if (curArtist) pickImageFor(curArtist.id, () => { if (curArtist) buildArtist(curArtist); }); });
+$('albumImgSetBtn').addEventListener('click', () => { if (curAlbum) pickImageFor(curAlbum.id, () => { if (curAlbum) buildAlbum(curAlbum); }); });
+$('logoDelBtn').addEventListener('click', async () => {
+  if (!curArtist) return;
+  if (!confirm('ロゴ画像を削除しますか？')) return;
+  const n = imgName('logo_' + curArtist.id);
+  if (!n) return;
+  try { await deleteImageFile(n); saveCache(); buildArtist(curArtist); }
+  catch (e) { alert('削除に失敗しました: ' + e.message); }
+});
+$('photoDelBtn').addEventListener('click', async () => {
+  if (!curArtist) return;
+  if (!confirm('写真を削除しますか？')) return;
+  const n = imgName(curArtist.id);
+  if (!n) return;
+  try { await deleteImageFile(n); saveCache(); buildArtist(curArtist); }
+  catch (e) { alert('削除に失敗しました: ' + e.message); }
+});
+$('albumImgDelBtn').addEventListener('click', async () => {
+  if (!curAlbum) return;
+  if (!confirm('アルバム画像を削除しますか？')) return;
+  const n = imgName(curAlbum.id);
+  if (!n) return;
+  try { await deleteImageFile(n); saveCache(); buildAlbum(curAlbum); }
+  catch (e) { alert('削除に失敗しました: ' + e.message); }
+});
   $('genreAddBtn').addEventListener('click', () => { $('genreAddForm').classList.toggle('hidden'); $('genreAddMsg').textContent = ''; });
   $('genreAddCancel').addEventListener('click', () => { $('genreAddForm').classList.add('hidden'); });
   $('genreAddOk').addEventListener('click', addGenre);
@@ -605,6 +650,38 @@ async function uploadImage(file) {
   }
   delete imgUrlCache[file.name];
 }
+async function deleteImageFile(name) {
+  const id = IMG[name];
+  if (id) await api('https://www.googleapis.com/drive/v3/files/' + id, { method: 'DELETE' });
+  delete IMG[name];
+  delete imgUrlCache[name];
+  log(name + ' を削除しました');
+}
+async function setImageForBase(base, picked) {
+  let ext = '.jpg';
+  if (picked.type === 'image/png') ext = '.png';
+  else if (picked.type === 'image/webp') ext = '.webp';
+  else if (picked.type === 'image/jpeg') ext = '.jpg';
+  else {
+    const m = /\.([a-z0-9]+)$/i.exec(picked.name || '');
+    if (m && ['jpg', 'jpeg', 'png', 'webp'].indexOf(m[1].toLowerCase()) >= 0) ext = '.' + m[1].toLowerCase();
+  }
+  const target = base + ext;
+  const old = imgName(base);
+  if (old && old !== target) await deleteImageFile(old);
+  const file = new File([picked], target, { type: picked.type || 'image/jpeg' });
+  await uploadImage(file);
+  await loadImageIndex();
+  saveCache();
+  log(target + ' を設定しました');
+}
+let imgPickJob = null;
+function pickImageFor(base, after) {
+  imgPickJob = { base: base, after: after };
+  const inp = $('imgPick');
+  inp.value = '';
+  inp.click();
+}
 async function importImages() {
   const files = $('importImages').files;
   if (!files || files.length === 0) { setStatus($('dataStatus'), '画像ファイルが選ばれていません', 'err'); return; }
@@ -869,6 +946,8 @@ function buildArtist(a) {
   const am = $('artistAm');
   am.style.display = 'block';
   am.href = a.am_url ? a.am_url : '#';
+  $('logoDelBtn').classList.toggle('hidden', !imgName('logo_' + a.id));
+  $('photoDelBtn').classList.toggle('hidden', !imgName(a.id));
   setImgByBase($('artistPhoto'), a.id);
   const bio = $('artistBio');
   bio.textContent = a.bio || '（バイオグラフィは未登録です）';
@@ -901,6 +980,7 @@ function buildAlbum(al) {
   $('albumTitle').textContent = al.title;
   $('albumMeta').textContent = (curArtist ? curArtist.name : '') + (al.year ? ' / ' + al.year : '') + (al.genre ? ' / ' + al.genre : '');
   setImgByBase($('albumImage'), al.id);
+  $('albumImgDelBtn').classList.toggle('hidden', !imgName(al.id));
   const note = $('albumNote');
   note.textContent = al.note || '（アルバム詳細は未登録です）';
   note.classList.add('clamp');
