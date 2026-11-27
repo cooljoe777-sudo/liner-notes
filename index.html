@@ -27,6 +27,9 @@
   #viewTop:not(.hidden) { display: flex; flex-direction: column; min-height: calc(100vh - 56px); }
   #viewTop h1.logo { font-size: 26px; letter-spacing: 0; }
   #viewTop .footer { margin-top: auto; }
+  .portline { text-align: center; color: #666; font-size: 12px; margin: 34px 0 0; }
+  #viewTop .portline { margin-top: auto; }
+  #viewTop .portline + .footer { margin-top: 6px; }
   .intro { color: #ccc; font-size: 13px; line-height: 1.8; margin: 0 6px 18px; }
   .card { border: 1px solid #444; border-radius: 12px; padding: 16px; margin: 14px 0; background: #111; }
   .card h2 { color: #ff8c1a; font-size: 18px; margin: 0 0 10px; }
@@ -145,7 +148,8 @@
       <p class="kiss">All right TETSU!<br>You Wanted the Best, You Got the Best!<br>The Hottest App in the World...</p>
       <h1 class="logo">LINER NOTES!!</h1>
       <div id="categoryList"></div>
-      <p class="footer">Created by TETSU, Feb. 2026</p>
+      <p class="portline">Ported to the Web by TETSU with Muse, 2026.11.27</p>
+      <p class="footer">Created by TETSU with Gemini, Feb. 2026</p>
     </div>
 
     <!-- ジャンル -->
@@ -277,7 +281,7 @@
 
 <script src="https://accounts.google.com/gsi/client"></script>
 <script>
-const BUILD = '2026-11-27 14:40版';
+const BUILD = '2026-11-27 15:05版';
 const CLIENT_ID = '664730006638-2j4rccndibo7ld7k3heghuhc0453kdmf.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 const DATA_FILES = ['categories.json', 'genres.json', 'artists.json', 'albums.json', 'songs.json'];
