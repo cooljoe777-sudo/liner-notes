@@ -86,6 +86,7 @@
   .memoNarrow { max-width: 700px; }
   #viewSong h1.logo { font-family: "BIZ UDGothic", "BIZ UDゴシック", "Noto Sans Mono CJK JP", Consolas, monospace; letter-spacing: 0; text-shadow: none; }
   .artistlogo { display: block; margin: 14px auto 6px; max-width: 92%; max-height: 110px; }
+  .artistlogo.hidden { display: none; }
   @media (min-width: 900px) {
     .col:has(#viewSong:not(.hidden)) { max-width: 1180px; }
     #viewSong { padding: 0 24px; }
@@ -142,7 +143,7 @@
       <p class="crumb" id="genreCrumb"></p>
       <div class="editbar">
         <button class="sub ctlbtn" id="genreAddBtn">＋ ジャンル追加</button>
-        <button class="sub ctlbtn" id="genreReorderBtn">並替</button>
+        <button class="sub ctlbtn" id="genreReorderBtn">並替・削除</button>
         <button class="sub ctlbtn hidden" id="genreReorderCancel">キャンセル</button>
       </div>
       <div id="genreAddForm" class="hidden">
@@ -165,7 +166,7 @@
       <p class="crumb" id="artistCrumb"></p>
       <div class="editbar">
         <button class="sub ctlbtn" id="artistAddBtn">＋ アーティスト追加</button>
-        <button class="sub ctlbtn" id="artistReorderBtn">並替</button>
+        <button class="sub ctlbtn" id="artistReorderBtn">並替・削除</button>
         <button class="sub ctlbtn hidden" id="artistReorderCancel">キャンセル</button>
       </div>
       <div id="artistList"></div>
@@ -255,7 +256,7 @@
 
 <script src="https://accounts.google.com/gsi/client"></script>
 <script>
-const BUILD = '2026-11-27 00:15版';
+const BUILD = '2026-11-27 13:45版';
 const CLIENT_ID = '664730006638-2j4rccndibo7ld7k3heghuhc0453kdmf.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 const DATA_FILES = ['categories.json', 'genres.json', 'artists.json', 'albums.json', 'songs.json'];
@@ -693,7 +694,7 @@ function buildTop() {
 }
 function buildGenres() {
   $('genreCrumb').textContent = 'カテゴリ: ' + curCategory;
-  $('genreReorderBtn').textContent = genreEditMode ? '完了' : '並替';
+  $('genreReorderBtn').textContent = genreEditMode ? '完了' : '並替・削除';
   $('genreReorderCancel').classList.toggle('hidden', !genreEditMode);
   $('genreAddBtn').classList.toggle('hidden', genreEditMode);
   const wrap = $('genreList');
@@ -719,7 +720,7 @@ function buildGenres() {
 }
 function buildArtists() {
   $('artistCrumb').textContent = curCategory + ' / ' + curGenre;
-  $('artistReorderBtn').textContent = artistEditMode ? '完了' : '並替';
+  $('artistReorderBtn').textContent = artistEditMode ? '完了' : '並替・削除';
   $('artistReorderCancel').classList.toggle('hidden', !artistEditMode);
   $('artistAddBtn').classList.toggle('hidden', artistEditMode);
   const wrap = $('artistList');
@@ -756,18 +757,19 @@ function buildArtist(a) {
   const logoName = imgName('logo_' + a.id);
   const h1 = $('artistName');
   const lg = $('artistLogo');
+  lg.classList.add('hidden');
+  lg.removeAttribute('src');
   if (logoName) {
     h1.classList.add('hidden');
     imgUrl(logoName).then(url => {
       if (!curArtist || curArtist.id !== a.id) return;
       if (url) { lg.src = url; lg.alt = a.name; lg.classList.remove('hidden'); }
-      else { lg.classList.add('hidden'); h1.classList.remove('hidden'); }
+      else { h1.classList.remove('hidden'); }
     }).catch(() => {
       if (!curArtist || curArtist.id !== a.id) return;
-      lg.classList.add('hidden'); h1.classList.remove('hidden');
+      h1.classList.remove('hidden');
     });
   } else {
-    lg.classList.add('hidden'); lg.removeAttribute('src');
     h1.classList.remove('hidden');
   }
   $('artistMeta').textContent = a.category + ' / ' + a.genre;
