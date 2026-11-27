@@ -47,18 +47,18 @@
     text-shadow: 0 0 8px rgba(255,140,26,.6); cursor: pointer; font-family: inherit;
   }
   .rowbtn {
-    display: block; width: 100%; text-align: left; font-size: 17px; padding: 13px 14px;
+    display: block; width: 100%; text-align: left; font-size: 17px; padding: 8px 14px;
     margin: 8px 0; background: #161616; color: #ffb35c; border: 1px solid #4a4a4a; border-radius: 10px;
     cursor: pointer; font-family: inherit;
   }
   .rowbtn small { color: #999; font-size: 12px; }
-  .backbtn { background: #2b2b2b; color: #f5f5f5; border: 1px solid #555; font-size: 14px; padding: 9px 14px; }
+  .backbtn { background: #2b2b2b; color: #f5f5f5; border: 1px solid #555; font-size: 14px; padding: 7px 12px; }
   .crumb { color: #999; font-size: 13px; margin: 8px 2px; }
   .bio { font-size: 14px; line-height: 1.9; white-space: pre-wrap; color: #eee; }
   .clamp { max-height: 220px; overflow: hidden; position: relative; }
   a.amlink {
     display: block; text-align: center; background: #ff8c1a; color: #000; text-decoration: none;
-    border-radius: 10px; padding: 13px; font-size: 16px; margin: 14px 0;
+    border-radius: 10px; padding: 9px 13px; font-size: 16px; margin: 14px 0;
   }
   #log { font-size: 11px; color: #8f8; white-space: pre-wrap; word-break: break-all; line-height: 1.6; }
   input[type=file] { color: #f5f5f5; margin: 8px 0; }
@@ -68,11 +68,11 @@
     width: 52px; height: 52px; border-radius: 50%; font-size: 24px;
     background: #2b2b2b; color: #ffb35c; border: 1px solid #ff8c1a; padding: 0;
   }
-  .topimg { width: calc(100% + 28px); margin: -16px -14px 0; height: 40vh; object-fit: contain; background: #000; display: block; }
-  .photoimg { max-width: 100%; height: auto; display: block; margin: 12px 0; border-radius: 8px; }
+  .topimg { width: calc(100% + 28px); margin: -6px -14px 0; height: 40vh; object-fit: contain; background: #000; display: block; }
+  .photoimg { max-width: 100%; height: auto; display: block; margin: 6px 0; border-radius: 8px; }
   .logoimg { max-height: 76px; max-width: 92%; display: block; margin: 4px auto; }
   .editbar { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
-  .ctlbtn { font-size: 14px; padding: 8px 12px; }
+  .ctlbtn { font-size: 14px; padding: 6px 11px; }
   .rowwrap { display: flex; align-items: center; gap: 6px; margin: 8px 0; }
   .rowwrap .rowbtn { flex: 1; margin: 0; }
   .rowlabel { flex: 1; font-size: 16px; color: #ffb35c; padding: 10px 6px; }
@@ -82,13 +82,13 @@
   textarea.fieldinput { line-height: 1.7; }
   .fieldbtns { margin-top: 6px; display: flex; gap: 6px; }
   button.danger { background: #500; color: #ffaaaa; border-color: #a33; }
-  .editmini { font-size: 13px; padding: 8px 10px; white-space: nowrap; }
+  .editmini { font-size: 13px; padding: 6px 9px; white-space: nowrap; }
   .lyricPair { display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; row-gap: 22px; }
   .lpHead { color: #ff8c1a; font-size: 18px; margin-top: 20px; letter-spacing: 2px; text-shadow: 0 0 10px rgba(255,140,26,.5); }
   .lpCell { font-size: 14px; line-height: 1.9; white-space: pre-wrap; color: #eee; word-break: break-word; }
   .memoNarrow { max-width: 700px; }
   #viewSong h1.logo { font-family: "BIZ UDGothic", "BIZ UDゴシック", "Noto Sans Mono CJK JP", Consolas, monospace; letter-spacing: 0; text-shadow: none; }
-  .artistlogo { display: block; margin: 14px auto 6px; max-width: 69%; max-height: 82px; }
+  .artistlogo { display: block; margin: 6px auto 2px; max-width: 69%; max-height: 82px; }
   .artistlogo.hidden { display: none; }
   @media (min-width: 900px) {
     .col:has(#viewSong:not(.hidden)) { max-width: 1180px; }
@@ -102,7 +102,6 @@
     #artistName { grid-column: 1 / -1; grid-row: 3; }
     #artistMeta { grid-column: 1 / -1; grid-row: 4; }
     #artistPhoto { grid-column: 1 / -1; grid-row: 5; justify-self: center; max-width: 560px; }
-    #viewArtist > .editbar { grid-column: 1 / -1; grid-row: 6; justify-content: center; }
     #artistBio { grid-column: 1; grid-row: 7; }
     #artistBio.clamp { max-height: 640px; }
     #bioToggle { grid-column: 1 / -1; grid-row: 9; justify-self: start; }
@@ -111,7 +110,7 @@
     #viewArtist > .bottomnav { grid-column: 1 / -1; grid-row: 10; }
   }
   .bottomnav { display: flex; gap: 8px; margin-top: 28px; border-top: 1px solid #333; padding-top: 14px; }
-  .bottomnav .backbtn { flex: 1; padding: 12px; font-size: 15px; }
+  .bottomnav .backbtn { flex: 1; padding: 9px; font-size: 15px; }
   .toprow { display: flex; align-items: center; gap: 6px; }
   .toprow .backbtn { margin: 0; flex: 0 0 auto; white-space: nowrap; font-size: 13px; padding: 8px 10px; }
   .toprow .editbar { margin: 0; flex: 1 1 auto; flex-wrap: nowrap; gap: 6px; }
@@ -123,6 +122,7 @@
   }
   #artistList .rowbtn.haslogo { border-color: #4a4a4a; }
   #artistList .logoimg { max-height: 48px; margin: 0 auto; }
+  #albumList .rowbtn { min-height: 44px; }
   .ampick { position: fixed; inset: 0; background: rgba(0,0,0,.8); z-index: 100; display: flex; align-items: center; justify-content: center; }
   .ampick.hidden { display: none; }
   .ampickbox { background: #161616; border: 1px solid #555; border-radius: 12px; padding: 16px; width: min(92vw, 400px); max-height: 80vh; overflow: auto; }
@@ -219,10 +219,7 @@
     <div id="viewArtist" class="hidden">
       <div class="toprow">
         <button class="backbtn" data-back="artists">← 一覧へ戻る</button>
-        <div class="editbar">
-          <button class="sub ctlbtn" id="artistEditBtn">アーティストを編集</button>
-          <button class="sub ctlbtn" id="albumAddBtn">＋ アルバム追加</button>
-        </div>
+        <button class="sub ctlbtn" id="artistSettingsBtn" style="margin-left:auto;">設定</button>
       </div>
       <img id="artistLogo" class="artistlogo hidden" alt="">
       <h1 class="logo" style="font-size:26px;" id="artistName"></h1>
@@ -231,12 +228,6 @@
       <div class="bio clamp" id="artistBio"></div>
       <button class="sub ctlbtn" id="bioToggle">… 続きを読む</button>
       <a class="amlink" id="artistAm" href="#" target="_blank" rel="noopener">Apple Musicで探す</a>
-      <div class="editbar">
-        <button class="sub ctlbtn" id="logoSetBtn">ロゴを設定</button>
-        <button class="sub ctlbtn" id="logoDelBtn">ロゴを削除</button>
-        <button class="sub ctlbtn" id="photoSetBtn">写真を設定</button>
-        <button class="sub ctlbtn" id="photoDelBtn">写真を削除</button>
-      </div>
       <div id="albumList" style="margin-top:18px;"></div>
       <div class="bottomnav">
         <button class="backbtn" data-back="artists">← 一覧へ戻る</button>
@@ -248,20 +239,13 @@
     <div id="viewAlbum" class="hidden">
       <div class="toprow">
         <button class="backbtn" data-back="artist">← アーティストへ戻る</button>
-        <div class="editbar">
-          <button class="sub ctlbtn" id="albumEditBtn">アルバムを編集</button>
-          <button class="sub ctlbtn" id="songAddBtn">＋ 曲追加</button>
-        </div>
+        <button class="sub ctlbtn" id="albumSettingsBtn" style="margin-left:auto;">設定</button>
       </div>
       <h1 class="logo" style="font-size:24px;" id="albumTitle"></h1>
       <p class="crumb" id="albumMeta"></p>
       <img id="albumImage" class="photoimg hidden" alt="">
       <div class="bio clamp" id="albumNote"></div>
       <button class="sub ctlbtn" id="noteToggle">… 続きを読む</button>
-      <div class="editbar">
-        <button class="sub ctlbtn" id="albumImgSetBtn">画像を設定</button>
-        <button class="sub ctlbtn" id="albumImgDelBtn">画像を削除</button>
-      </div>
       <div id="songList" style="margin-top:18px;"></div>
       <div class="bottomnav">
         <button class="backbtn" data-back="artist">アーティストへ戻る</button>
@@ -308,6 +292,11 @@
   </div>
 
   <input type="file" id="imgPick" accept="image/*" class="hidden">
+  <div id="settingsPick" class="ampick hidden">
+    <p class="ampicktitle">設定</p>
+    <div id="settingsList"></div>
+    <button class="sub ctlbtn" id="settingsCancel" style="width:100%; margin-top:10px;">キャンセル</button>
+  </div>
   <div id="amPick" class="ampick hidden">
     <div class="ampickbox">
       <p class="ampicktitle">アーティストを選択</p>
@@ -320,7 +309,7 @@
 
 <script src="https://accounts.google.com/gsi/client"></script>
 <script>
-const BUILD = '2026-11-27 22:20版';
+const BUILD = '2026-11-27 22:45版';
 const CLIENT_ID = '664730006638-2j4rccndibo7ld7k3heghuhc0453kdmf.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 const DATA_FILES = ['categories.json', 'genres.json', 'artists.json', 'albums.json', 'songs.json'];
@@ -372,33 +361,34 @@ $('imgPick').addEventListener('change', async () => {
   try { await setImageForBase(job.base, f); if (job.after) job.after(); }
   catch (e) { alert('画像の保存に失敗しました: ' + e.message); log('画像の保存エラー: ' + e.message); }
 });
-$('logoSetBtn').addEventListener('click', () => { if (curArtist) pickImageFor('logo_' + curArtist.id, () => { if (curArtist) buildArtist(curArtist); }); });
-$('photoSetBtn').addEventListener('click', () => { if (curArtist) pickImageFor(curArtist.id, () => { if (curArtist) buildArtist(curArtist); }); });
-$('albumImgSetBtn').addEventListener('click', () => { if (curAlbum) pickImageFor(curAlbum.id, () => { if (curAlbum) buildAlbum(curAlbum); }); });
-$('logoDelBtn').addEventListener('click', async () => {
-  if (!curArtist) return;
-  if (!confirm('ロゴ画像を削除しますか？')) return;
-  const n = imgName('logo_' + curArtist.id);
+function showSettings(items) {
+  const list = $('settingsList');
+  list.innerHTML = '';
+  for (const it of items) {
+    const b = document.createElement('button');
+    b.className = 'rowbtn';
+    b.textContent = it.label;
+    b.addEventListener('click', () => { $('settingsPick').classList.add('hidden'); it.fn(); });
+    list.appendChild(b);
+  }
+  $('settingsPick').classList.remove('hidden');
+}
+$('settingsCancel').addEventListener('click', () => $('settingsPick').classList.add('hidden'));
+async function deleteArtistImage(base, msg) {
+  if (!confirm(msg)) return;
+  const n = imgName(base);
   if (!n) return;
-  try { await deleteImageFile(n); saveCache(); buildArtist(curArtist); }
+  try { await deleteImageFile(n); saveCache(); if (curArtist) buildArtist(curArtist); }
   catch (e) { alert('削除に失敗しました: ' + e.message); }
-});
-$('photoDelBtn').addEventListener('click', async () => {
-  if (!curArtist) return;
-  if (!confirm('写真を削除しますか？')) return;
-  const n = imgName(curArtist.id);
-  if (!n) return;
-  try { await deleteImageFile(n); saveCache(); buildArtist(curArtist); }
-  catch (e) { alert('削除に失敗しました: ' + e.message); }
-});
-$('albumImgDelBtn').addEventListener('click', async () => {
+}
+async function deleteAlbumImage() {
   if (!curAlbum) return;
   if (!confirm('アルバム画像を削除しますか？')) return;
   const n = imgName(curAlbum.id);
   if (!n) return;
   try { await deleteImageFile(n); saveCache(); buildAlbum(curAlbum); }
   catch (e) { alert('削除に失敗しました: ' + e.message); }
-});
+}
   $('genreAddBtn').addEventListener('click', () => { $('genreAddForm').classList.toggle('hidden'); $('genreAddMsg').textContent = ''; });
   $('genreAddCancel').addEventListener('click', () => { $('genreAddForm').classList.add('hidden'); });
   $('genreAddOk').addEventListener('click', addGenre);
@@ -407,10 +397,30 @@ $('albumImgDelBtn').addEventListener('click', async () => {
   $('artistAddBtn').addEventListener('click', () => openEdit('artist', { category: curCategory, genre: curGenre }, null, backToArtists));
   $('artistReorderBtn').addEventListener('click', toggleArtistReorder);
   $('artistReorderCancel').addEventListener('click', cancelArtistReorder);
-  $('artistEditBtn').addEventListener('click', () => { if (curArtist) openEdit('artist', curArtist, null, backFromArtistForm); });
-  $('albumAddBtn').addEventListener('click', () => { if (curArtist) openEdit('album', {}, curArtist.id, backFromAlbumForm); });
-  $('albumEditBtn').addEventListener('click', () => { if (curAlbum) openEdit('album', curAlbum, curArtist ? curArtist.id : null, backFromAlbumFormToAlbum); });
-  $('songAddBtn').addEventListener('click', () => { if (curAlbum) openEdit('song', {}, curAlbum.id, backFromSongFormToAlbum); });
+  $('artistSettingsBtn').addEventListener('click', () => {
+    if (!curArtist) return;
+    const a = curArtist;
+    const items = [
+      { label: 'アーティストを編集', fn: () => openEdit('artist', a, null, backFromArtistForm) },
+      { label: '＋ アルバム追加', fn: () => openEdit('album', {}, a.id, backFromAlbumForm) },
+      { label: 'ロゴを設定', fn: () => pickImageFor('logo_' + a.id, () => { if (curArtist) buildArtist(curArtist); }) }
+    ];
+    if (imgName('logo_' + a.id)) items.push({ label: 'ロゴを削除', fn: () => deleteArtistImage('logo_' + a.id, 'ロゴ画像を削除しますか？') });
+    items.push({ label: '写真を設定', fn: () => pickImageFor(a.id, () => { if (curArtist) buildArtist(curArtist); }) });
+    if (imgName(a.id)) items.push({ label: '写真を削除', fn: () => deleteArtistImage(a.id, '写真を削除しますか？') });
+    showSettings(items);
+  });
+  $('albumSettingsBtn').addEventListener('click', () => {
+    if (!curAlbum) return;
+    const al = curAlbum;
+    const items = [
+      { label: 'アルバムを編集', fn: () => openEdit('album', al, curArtist ? curArtist.id : null, backFromAlbumFormToAlbum) },
+      { label: '＋ 曲追加', fn: () => openEdit('song', {}, al.id, backFromSongFormToAlbum) },
+      { label: '画像を設定', fn: () => pickImageFor(al.id, () => { if (curAlbum) buildAlbum(curAlbum); }) }
+    ];
+    if (imgName(al.id)) items.push({ label: '画像を削除', fn: () => deleteAlbumImage() });
+    showSettings(items);
+  });
   $('songEditBtn').addEventListener('click', () => { if (curSong) openEdit('song', curSong, curAlbum ? curAlbum.id : null, backFromSongFormToSong); });
   $('editSave').addEventListener('click', saveEdit);
   $('editDelete').addEventListener('click', deleteEdit);
@@ -962,8 +972,7 @@ function buildArtist(a) {
   const am = $('artistAm');
   am.style.display = 'block';
   am.href = a.am_url ? a.am_url : '#';
-  $('logoDelBtn').classList.toggle('hidden', !imgName('logo_' + a.id));
-  $('photoDelBtn').classList.toggle('hidden', !imgName(a.id));
+
   setImgByBase($('artistPhoto'), a.id);
   const bio = $('artistBio');
   bio.textContent = a.bio || '（バイオグラフィは未登録です）';
@@ -996,7 +1005,6 @@ function buildAlbum(al) {
   $('albumTitle').textContent = al.title;
   $('albumMeta').textContent = (curArtist ? curArtist.name : '') + (al.year ? ' / ' + al.year : '') + (al.genre ? ' / ' + al.genre : '');
   setImgByBase($('albumImage'), al.id);
-  $('albumImgDelBtn').classList.toggle('hidden', !imgName(al.id));
   const note = $('albumNote');
   note.textContent = al.note || '（アルバム詳細は未登録です）';
   note.classList.add('clamp');
