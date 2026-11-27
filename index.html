@@ -53,7 +53,7 @@
   }
   .rowbtn small { color: #999; font-size: 12px; }
   .backbtn { background: #2b2b2b; color: #f5f5f5; border: 1px solid #555; font-size: 14px; padding: 7px 12px; }
-  .crumb { color: #999; font-size: 13px; margin: 8px 2px; }
+  .crumb { color: #999; font-size: 13px; margin: 8px 2px; text-align: center; }
   .bio { font-size: 14px; line-height: 1.9; white-space: pre-wrap; color: #eee; }
   .clamp { max-height: 220px; overflow: hidden; position: relative; }
   a.amlink {
@@ -70,6 +70,8 @@
   }
   .topimg { width: calc(100% + 28px); margin: -6px -14px 0; height: 40vh; object-fit: contain; background: #000; display: block; }
   .photoimg { max-width: 100%; height: auto; display: block; margin: 6px 0; border-radius: 8px; }
+  #artistMeta { margin: 3px 2px; }
+  #artistPhoto { height: 200px; width: auto; max-width: 100%; margin: 3px auto 6px; }
   .logoimg { max-height: 76px; max-width: 92%; display: block; margin: 4px auto; }
   .editbar { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
   .ctlbtn { font-size: 14px; padding: 6px 11px; }
@@ -88,7 +90,7 @@
   .lpCell { font-size: 14px; line-height: 1.9; white-space: pre-wrap; color: #eee; word-break: break-word; }
   .memoNarrow { max-width: 700px; }
   #viewSong h1.logo { font-family: "BIZ UDGothic", "BIZ UDゴシック", "Noto Sans Mono CJK JP", Consolas, monospace; letter-spacing: 0; text-shadow: none; }
-  .artistlogo { display: block; margin: 6px auto 2px; max-width: 69%; max-height: 82px; }
+  .artistlogo { display: block; margin: 6px auto 0; max-width: 69%; max-height: 82px; }
   .artistlogo.hidden { display: none; }
   @media (min-width: 900px) {
     .col:has(#viewSong:not(.hidden)) { max-width: 1180px; }
@@ -101,7 +103,7 @@
     #artistLogo { grid-column: 1 / -1; grid-row: 2; justify-self: center; }
     #artistName { grid-column: 1 / -1; grid-row: 3; }
     #artistMeta { grid-column: 1 / -1; grid-row: 4; }
-    #artistPhoto { grid-column: 1 / -1; grid-row: 5; justify-self: center; max-width: 560px; }
+    #artistPhoto { grid-column: 1 / -1; grid-row: 5; justify-self: center; height: 300px; width: auto; max-width: 100%; }
     #artistBio { grid-column: 1; grid-row: 7; }
     #artistBio.clamp { max-height: 640px; }
     #bioToggle { grid-column: 1 / -1; grid-row: 9; justify-self: start; }
@@ -313,7 +315,7 @@
 
 <script src="https://accounts.google.com/gsi/client"></script>
 <script>
-const BUILD = '2026-11-27 23:05版';
+const BUILD = '2026-11-28 00:35版';
 const CLIENT_ID = '664730006638-2j4rccndibo7ld7k3heghuhc0453kdmf.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 const DATA_FILES = ['categories.json', 'genres.json', 'artists.json', 'albums.json', 'songs.json'];
