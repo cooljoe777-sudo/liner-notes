@@ -107,6 +107,10 @@
   }
   #artistList .rowbtn.haslogo { border-color: #4a4a4a; }
   #artistList .logoimg { max-height: 48px; margin: 0 auto; }
+  .ampick { position: fixed; inset: 0; background: rgba(0,0,0,.8); z-index: 100; display: flex; align-items: center; justify-content: center; }
+  .ampick.hidden { display: none; }
+  .ampickbox { background: #161616; border: 1px solid #555; border-radius: 12px; padding: 16px; width: min(92vw, 400px); max-height: 80vh; overflow: auto; }
+  .ampicktitle { color: #ff8c1a; margin: 0 0 10px; font-size: 16px; }
 </style>
 </head>
 <body>
@@ -148,7 +152,7 @@
       <p class="kiss">All right TETSU!<br>You Wanted the Best, You Got the Best!<br>The Hottest App in the World...</p>
       <h1 class="logo">LINER NOTES!!</h1>
       <div id="categoryList"></div>
-      <p class="portline">Ported to the Web by TETSU with Muse, 2026.11.27</p>
+      <p class="portline">Ported to the Web by TETSU with Muse, Nov. 2026</p>
       <p class="footer">Created by TETSU with Gemini, Feb. 2026</p>
     </div>
 
@@ -277,11 +281,19 @@
     <div id="log"></div>
   </div>
 
+  <div id="amPick" class="ampick hidden">
+    <div class="ampickbox">
+      <p class="ampicktitle">アーティストを選択</p>
+      <div id="amPickList"></div>
+      <button class="sub ctlbtn" id="amPickCancel">キャンセル</button>
+    </div>
+  </div>
+
 </div>
 
 <script src="https://accounts.google.com/gsi/client"></script>
 <script>
-const BUILD = '2026-11-27 15:05版';
+const BUILD = '2026-11-27 15:40版';
 const CLIENT_ID = '664730006638-2j4rccndibo7ld7k3heghuhc0453kdmf.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 const DATA_FILES = ['categories.json', 'genres.json', 'artists.json', 'albums.json', 'songs.json'];
@@ -322,6 +334,10 @@ window.addEventListener('load', () => {
   $('importBtn').addEventListener('click', importData);
   $('importImagesBtn').addEventListener('click', importImages);
   $('gearBtn').addEventListener('click', () => setPanels(!panelsHidden()));
+$('artistAm').addEventListener('click', (e) => {
+  if (curArtist && !curArtist.am_url) { e.preventDefault(); findAmUrl(curArtist); }
+});
+$('amPickCancel').addEventListener('click', () => $('amPick').classList.add('hidden'));
   $('genreAddBtn').addEventListener('click', () => { $('genreAddForm').classList.toggle('hidden'); $('genreAddMsg').textContent = ''; });
   $('genreAddCancel').addEventListener('click', () => { $('genreAddForm').classList.add('hidden'); });
   $('genreAddOk').addEventListener('click', addGenre);
@@ -777,6 +793,57 @@ function buildArtists() {
   }
   if (list.length === 0) wrap.innerHTML = '<p class="status dim">アーティストがありません</p>';
 }
+function itunesSearch(name) {
+  const url = 'https://itunes.apple.com/search?term=' + encodeURIComponent(name) + '&entity=musicArtist&limit=10&country=JP';
+  return fetch(url).then(r => r.json()).then(d => d.results || []).catch(() => new Promise((resolve) => {
+    const cb = 'lnjp' + Date.now();
+    const sc = document.createElement('script');
+    const timer = setTimeout(() => { cleanup(); resolve([]); }, 10000);
+    function cleanup() { clearTimeout(timer); try { delete window[cb]; } catch (e) { window[cb] = undefined; } if (sc.parentNode) sc.parentNode.removeChild(sc); }
+    window[cb] = (d) => { cleanup(); resolve((d && d.results) || []); };
+    sc.src = url + '&callback=' + cb;
+    sc.onerror = () => { cleanup(); resolve([]); };
+    document.head.appendChild(sc);
+  }));
+}
+
+let amBusy = false;
+async function findAmUrl(a) {
+  if (amBusy) return;
+  amBusy = true;
+  const am = $('artistAm');
+  const old = am.textContent;
+  am.textContent = '検索中…';
+  try {
+    const results = await itunesSearch(a.name);
+    const cands = results.filter(r => r.artistLinkUrl);
+    if (!cands.length) { alert('Apple Musicで見つかりませんでした'); return; }
+    showAmPick(cands, async (link) => {
+      a.am_url = link;
+      try { await persistFiles(['artists.json']); log('Apple Music URLを保存しました'); }
+      catch (e) { log('URLの保存エラー: ' + e.message); }
+      if (curArtist && curArtist.id === a.id) $('artistAm').href = link;
+      window.open(link, '_blank');
+    });
+  } finally {
+    amBusy = false;
+    am.textContent = old;
+  }
+}
+
+function showAmPick(cands, onPick) {
+  const box = $('amPickList');
+  box.innerHTML = '';
+  for (const r of cands) {
+    const b = document.createElement('button');
+    b.className = 'rowbtn';
+    b.textContent = r.artistName + (r.primaryGenreName ? ' (' + r.primaryGenreName + ')' : '');
+    b.addEventListener('click', () => { $('amPick').classList.add('hidden'); onPick(r.artistLinkUrl); });
+    box.appendChild(b);
+  }
+  $('amPick').classList.remove('hidden');
+}
+
 function buildArtist(a) {
   curArtist = a;
   $('artistName').textContent = a.name;
@@ -800,7 +867,8 @@ function buildArtist(a) {
   }
   $('artistMeta').textContent = a.category + ' / ' + a.genre;
   const am = $('artistAm');
-  if (a.am_url) { am.href = a.am_url; am.style.display = 'block'; } else { am.style.display = 'none'; }
+  am.style.display = 'block';
+  am.href = a.am_url ? a.am_url : '#';
   setImgByBase($('artistPhoto'), a.id);
   const bio = $('artistBio');
   bio.textContent = a.bio || '（バイオグラフィは未登録です）';
