@@ -85,7 +85,7 @@
   .lpCell { font-size: 14px; line-height: 1.9; white-space: pre-wrap; color: #eee; word-break: break-word; }
   .memoNarrow { max-width: 700px; }
   #viewSong h1.logo { font-family: "BIZ UDGothic", "BIZ UDゴシック", "Noto Sans Mono CJK JP", Consolas, monospace; letter-spacing: 0; text-shadow: none; }
-  .artistlogo { display: block; margin: 14px auto 6px; max-width: 92%; max-height: 110px; }
+  .artistlogo { display: block; margin: 14px auto 6px; max-width: 69%; max-height: 82px; }
   .artistlogo.hidden { display: none; }
   @media (min-width: 900px) {
     .col:has(#viewSong:not(.hidden)) { max-width: 1180px; }
@@ -93,6 +93,17 @@
   }
   .bottomnav { display: flex; gap: 8px; margin-top: 28px; border-top: 1px solid #333; padding-top: 14px; }
   .bottomnav .backbtn { flex: 1; padding: 12px; font-size: 15px; }
+  .toprow { display: flex; align-items: center; gap: 6px; }
+  .toprow .backbtn { margin: 0; flex: 0 0 auto; white-space: nowrap; font-size: 13px; padding: 8px 10px; }
+  .toprow .editbar { margin: 0; flex: 1 1 auto; flex-wrap: nowrap; gap: 6px; }
+  .toprow .editbar button { margin: 0; white-space: nowrap; font-size: 13px; padding: 8px 9px; }
+  #artistList .rowbtn {
+    width: 62%; height: 62px; margin: 8px auto; padding: 6px 10px;
+    background: #000; border-color: #ff8c1a; color: #ff8c1a;
+    display: flex; align-items: center; justify-content: center; text-align: center;
+  }
+  #artistList .rowbtn.haslogo { border-color: #4a4a4a; }
+  #artistList .logoimg { max-height: 48px; margin: 0 auto; }
 </style>
 </head>
 <body>
@@ -139,13 +150,15 @@
 
     <!-- ジャンル -->
     <div id="viewGenres" class="hidden">
-      <button class="backbtn" data-back="top">← トップへ戻る</button>
-      <p class="crumb" id="genreCrumb"></p>
-      <div class="editbar">
-        <button class="sub ctlbtn" id="genreAddBtn">＋ ジャンル追加</button>
-        <button class="sub ctlbtn" id="genreReorderBtn">並替・削除</button>
-        <button class="sub ctlbtn hidden" id="genreReorderCancel">キャンセル</button>
+      <div class="toprow">
+        <button class="backbtn" data-back="top">← トップへ戻る</button>
+        <div class="editbar">
+          <button class="sub ctlbtn" id="genreAddBtn">＋ ジャンル追加</button>
+          <button class="sub ctlbtn" id="genreReorderBtn">並替・削除</button>
+          <button class="sub ctlbtn hidden" id="genreReorderCancel">キャンセル</button>
+        </div>
       </div>
+      <p class="crumb" id="genreCrumb"></p>
       <div id="genreAddForm" class="hidden">
         <input type="text" id="genreNewName" class="fieldinput" placeholder="ジャンル名">
         <div class="editbar">
@@ -162,13 +175,15 @@
 
     <!-- アーティスト一覧 -->
     <div id="viewArtists" class="hidden">
-      <button class="backbtn" data-back="genres">← ジャンルへ戻る</button>
-      <p class="crumb" id="artistCrumb"></p>
-      <div class="editbar">
-        <button class="sub ctlbtn" id="artistAddBtn">＋ アーティスト追加</button>
-        <button class="sub ctlbtn" id="artistReorderBtn">並替・削除</button>
-        <button class="sub ctlbtn hidden" id="artistReorderCancel">キャンセル</button>
+      <div class="toprow">
+        <button class="backbtn" data-back="genres">← ジャンルへ戻る</button>
+        <div class="editbar">
+          <button class="sub ctlbtn" id="artistAddBtn">＋ アーティスト追加</button>
+          <button class="sub ctlbtn" id="artistReorderBtn">並替・削除</button>
+          <button class="sub ctlbtn hidden" id="artistReorderCancel">キャンセル</button>
+        </div>
       </div>
+      <p class="crumb" id="artistCrumb"></p>
       <div id="artistList"></div>
       <div class="bottomnav">
         <button class="backbtn" data-back="genres">← ジャンルへ戻る</button>
@@ -178,18 +193,20 @@
 
     <!-- アーティスト詳細 -->
     <div id="viewArtist" class="hidden">
-      <button class="backbtn" data-back="artists">← 一覧へ戻る</button>
+      <div class="toprow">
+        <button class="backbtn" data-back="artists">← 一覧へ戻る</button>
+        <div class="editbar">
+          <button class="sub ctlbtn" id="artistEditBtn">アーティストを編集</button>
+          <button class="sub ctlbtn" id="albumAddBtn">＋ アルバム追加</button>
+        </div>
+      </div>
       <img id="artistLogo" class="artistlogo hidden" alt="">
       <h1 class="logo" style="font-size:26px;" id="artistName"></h1>
       <p class="crumb" id="artistMeta"></p>
-      <a class="amlink" id="artistAm" href="#" target="_blank" rel="noopener">Apple Musicで探す</a>
       <img id="artistPhoto" class="photoimg hidden" alt="">
       <div class="bio clamp" id="artistBio"></div>
-      <button class="sub" id="bioToggle">… 続きを読む</button>
-      <div class="editbar">
-        <button class="sub ctlbtn" id="artistEditBtn">アーティストを編集</button>
-        <button class="sub ctlbtn" id="albumAddBtn">＋ アルバム追加</button>
-      </div>
+      <button class="sub ctlbtn" id="bioToggle">… 続きを読む</button>
+      <a class="amlink" id="artistAm" href="#" target="_blank" rel="noopener">Apple Musicで探す</a>
       <div id="albumList" style="margin-top:18px;"></div>
       <div class="bottomnav">
         <button class="backbtn" data-back="artists">← 一覧へ戻る</button>
@@ -199,31 +216,35 @@
 
     <!-- アルバム詳細 -->
     <div id="viewAlbum" class="hidden">
-      <button class="backbtn" data-back="artist">← アーティストへ戻る</button>
+      <div class="toprow">
+        <button class="backbtn" data-back="artist">← アーティストへ戻る</button>
+        <div class="editbar">
+          <button class="sub ctlbtn" id="albumEditBtn">アルバムを編集</button>
+          <button class="sub ctlbtn" id="songAddBtn">＋ 曲追加</button>
+        </div>
+      </div>
       <h1 class="logo" style="font-size:24px;" id="albumTitle"></h1>
       <p class="crumb" id="albumMeta"></p>
       <img id="albumImage" class="photoimg hidden" alt="">
       <div class="bio clamp" id="albumNote"></div>
-      <button class="sub" id="noteToggle">… 続きを読む</button>
-      <div class="editbar">
-        <button class="sub ctlbtn" id="albumEditBtn">アルバムを編集</button>
-        <button class="sub ctlbtn" id="songAddBtn">＋ 曲追加</button>
-      </div>
+      <button class="sub ctlbtn" id="noteToggle">… 続きを読む</button>
       <div id="songList" style="margin-top:18px;"></div>
       <div class="bottomnav">
-        <button class="backbtn" data-back="artist">← アーティストへ戻る</button>
+        <button class="backbtn" data-back="artist">アーティストへ戻る</button>
         <button class="backbtn" data-back="top">トップへ戻る</button>
       </div>
     </div>
 
     <!-- 曲詳細 -->
     <div id="viewSong" class="hidden">
-      <button class="backbtn" data-back="album">← アルバムへ戻る</button>
+      <div class="toprow">
+        <button class="backbtn" data-back="album">← アルバムへ戻る</button>
+        <div class="editbar">
+          <button class="sub ctlbtn" id="songEditBtn">曲を編集</button>
+        </div>
+      </div>
       <h1 class="logo" style="font-size:24px;" id="songTitle"></h1>
       <p class="crumb" id="songMeta"></p>
-      <div class="editbar">
-        <button class="sub ctlbtn" id="songEditBtn">曲を編集</button>
-      </div>
       <div id="songSections"></div>
       <div class="bottomnav">
         <button class="backbtn" data-back="album">← アルバムへ戻る</button>
@@ -256,7 +277,7 @@
 
 <script src="https://accounts.google.com/gsi/client"></script>
 <script>
-const BUILD = '2026-11-27 13:45版';
+const BUILD = '2026-11-27 14:40版';
 const CLIENT_ID = '664730006638-2j4rccndibo7ld7k3heghuhc0453kdmf.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 const DATA_FILES = ['categories.json', 'genres.json', 'artists.json', 'albums.json', 'songs.json'];
@@ -743,6 +764,7 @@ function buildArtists() {
       imgUrl(logoName).then(url => {
         if (!url) return;
         b.textContent = '';
+        b.classList.add('haslogo');
         const im = document.createElement('img');
         im.className = 'logoimg'; im.src = url; im.alt = a.name;
         b.appendChild(im);
