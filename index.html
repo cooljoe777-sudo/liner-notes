@@ -94,6 +94,21 @@
     .col:has(#viewSong:not(.hidden)) { max-width: 1180px; }
     #viewSong { padding: 0 24px; }
   }
+  @media (min-width: 900px) {
+    .col:has(#viewArtist:not(.hidden)) { max-width: 1180px; }
+    #viewArtist:not(.hidden) { display: grid; grid-template-columns: 1fr 1fr; column-gap: 36px; row-gap: 6px; }
+    #viewArtist > .toprow { grid-column: 1 / -1; grid-row: 1; }
+    #artistLogo { grid-column: 1 / -1; grid-row: 2; justify-self: center; }
+    #artistName { grid-column: 1 / -1; grid-row: 3; }
+    #artistMeta { grid-column: 1 / -1; grid-row: 4; }
+    #artistPhoto { grid-column: 1 / -1; grid-row: 5; justify-self: center; max-width: 560px; }
+    #viewArtist > .editbar { grid-column: 1 / -1; grid-row: 6; justify-content: center; }
+    #artistBio { grid-column: 1; grid-row: 7; }
+    #bioToggle { grid-column: 1; grid-row: 8; justify-self: start; }
+    #artistAm { grid-column: 2; grid-row: 7; margin-top: 0; }
+    #albumList { grid-column: 2; grid-row: 8; margin-top: 0 !important; }
+    #viewArtist > .bottomnav { grid-column: 1 / -1; grid-row: 9; }
+  }
   .bottomnav { display: flex; gap: 8px; margin-top: 28px; border-top: 1px solid #333; padding-top: 14px; }
   .bottomnav .backbtn { flex: 1; padding: 12px; font-size: 15px; }
   .toprow { display: flex; align-items: center; gap: 6px; }
@@ -304,7 +319,7 @@
 
 <script src="https://accounts.google.com/gsi/client"></script>
 <script>
-const BUILD = '2026-11-27 17:30版';
+const BUILD = '2026-11-27 21:30版';
 const CLIENT_ID = '664730006638-2j4rccndibo7ld7k3heghuhc0453kdmf.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 const DATA_FILES = ['categories.json', 'genres.json', 'artists.json', 'albums.json', 'songs.json'];
