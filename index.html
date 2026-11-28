@@ -125,6 +125,7 @@
   #artistList .rowbtn.haslogo { border-color: #4a4a4a; }
   #artistList .logoimg { max-height: 48px; margin: 0 auto; }
   #albumList .rowbtn { min-height: 36px; padding-top: 4px; padding-bottom: 4px; }
+  @media (max-width: 899px) { #albumImage { width: 80%; margin: 6px auto; } }
   #albumList h2 { margin: 6px 0 8px; }
   #settingsList .rowbtn { white-space: nowrap; }
   .ampick { position: fixed; inset: 0; background: rgba(0,0,0,.8); z-index: 100; display: flex; align-items: center; justify-content: center; }
@@ -315,7 +316,7 @@
 
 <script src="https://accounts.google.com/gsi/client"></script>
 <script>
-const BUILD = '2026-11-28 11:20版';
+const BUILD = '2026-11-28 15:50版';
 const CLIENT_ID = '664730006638-2j4rccndibo7ld7k3heghuhc0453kdmf.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 const DATA_FILES = ['categories.json', 'genres.json', 'artists.json', 'albums.json', 'songs.json'];
@@ -335,6 +336,7 @@ let curAlbum = null;
 let curSong = null;
 let genreEditMode = false;
 let artistEditMode = false;
+let albumEditMode = false;
 let reorderSnapshot = null;
 
 const $ = id => document.getElementById(id);
@@ -409,6 +411,7 @@ async function deleteAlbumImage() {
     const items = [
       { label: 'アーティストを編集', fn: () => openEdit('artist', a, null, backFromArtistForm) },
       { label: '＋ アルバム追加', fn: () => openEdit('album', {}, a.id, backFromAlbumForm) },
+      { label: 'アルバム並替', fn: () => toggleAlbumReorder() },
       { label: 'ロゴを設定', fn: () => pickImageFor('logo_' + a.id, () => { if (curArtist) buildArtist(curArtist); }) }
     ];
     if (imgName('logo_' + a.id)) items.push({ label: 'ロゴを削除', fn: () => deleteArtistImage('logo_' + a.id, 'ロゴ画像を削除しますか？') });
@@ -955,6 +958,7 @@ function showAmPick(cands, onPick) {
 
 function buildArtist(a) {
   curArtist = a;
+  if (albumEditMode && reorderSnapshot && reorderSnapshot.artistId !== a.id) { restoreOrder(reorderSnapshot); reorderSnapshot = null; albumEditMode = false; }
   $('artistName').textContent = a.name;
   const logoName = imgName('logo_' + a.id);
   const h1 = $('artistName');
@@ -984,12 +988,39 @@ function buildArtist(a) {
   bio.textContent = a.bio || '（バイオグラフィは未登録です）';
   bio.classList.add('clamp');
   $('bioToggle').textContent = '… 続きを読む';
-  const albums = DB['albums.json'].filter(al => al.artist_id === a.id)
-    .sort((x, y) => String(x.year || '').localeCompare(String(y.year || '')));
+  const albums = DB['albums.json'].filter(al => al.artist_id === a.id);
   const wrap = $('albumList');
   wrap.innerHTML = '<h2 style="color:#ff8c1a;font-size:18px;">アルバム</h2>';
+  if (albumEditMode) {
+    const bar = document.createElement('div');
+    bar.className = 'editbar';
+    const done = document.createElement('button');
+    done.className = 'sub ctlbtn'; done.textContent = '完了';
+    done.addEventListener('click', toggleAlbumReorder);
+    const cancel = document.createElement('button');
+    cancel.className = 'sub ctlbtn'; cancel.textContent = 'キャンセル';
+    cancel.addEventListener('click', cancelAlbumReorder);
+    bar.appendChild(done); bar.appendChild(cancel);
+    wrap.appendChild(bar);
+  }
   if (albums.length === 0) wrap.innerHTML += '<p class="status dim">登録アルバムはありません</p>';
   for (const al of albums) {
+    if (albumEditMode) {
+      const row = document.createElement('div');
+      row.className = 'rowwrap';
+      const s = document.createElement('span');
+      s.className = 'rowlabel'; s.textContent = (al.year ? al.year + '　' : '') + al.title;
+      row.appendChild(s);
+      const mk = (t, dir) => {
+        const b = document.createElement('button');
+        b.className = 'sub ctlbtn'; b.textContent = t;
+        b.addEventListener('click', () => { moveInGroup('albums.json', x => x.artist_id === a.id, al.id, dir); buildArtist(a); });
+        row.appendChild(b);
+      };
+      mk('↑', -1); mk('↓', 1);
+      wrap.appendChild(row);
+      continue;
+    }
     const row = document.createElement('div');
     row.className = 'rowwrap';
     const d = document.createElement('button');
@@ -1156,6 +1187,24 @@ function cancelArtistReorder() {
   if (reorderSnapshot) { restoreOrder(reorderSnapshot); reorderSnapshot = null; }
   artistEditMode = false;
   buildArtists();
+}
+async function toggleAlbumReorder() {
+  if (!albumEditMode) {
+    albumEditMode = true;
+    reorderSnapshot = { file: 'albums.json', ids: DB['albums.json'].map(x => x.id), artistId: curArtist ? curArtist.id : null };
+    if (curArtist) buildArtist(curArtist);
+  } else {
+    albumEditMode = false;
+    try { await persistFiles(['albums.json']); log('アルバムの並び順を保存しました'); }
+    catch (e) { log('並び順の保存エラー: ' + e.message); }
+    reorderSnapshot = null;
+    if (curArtist) buildArtist(curArtist);
+  }
+}
+function cancelAlbumReorder() {
+  if (reorderSnapshot) { restoreOrder(reorderSnapshot); reorderSnapshot = null; }
+  albumEditMode = false;
+  if (curArtist) buildArtist(curArtist);
 }
 
 // 編集フォームからの戻り先
